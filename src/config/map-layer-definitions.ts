@@ -1,9 +1,16 @@
 import type { MapLayers } from '@/types';
 // boundary-ignore: isDesktopRuntime is a pure env probe with no service dependencies
 import { isDesktopRuntime } from '@/services/runtime';
+import { LOB_IDS, LOB_LAYERS } from './mosaic/generated';
 
 export type MapRenderer = 'flat' | 'globe';
-export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity' | 'energy';
+export type PublicMapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity' | 'energy';
+/**
+ * A public variant id or a line-of-business id (see src/config/mosaic/lobs.ts).
+ * Widened to string because LOB ids are generated from CSV and registered into
+ * VARIANT_LAYER_ORDER at module load; unknown ids fall back to `full`.
+ */
+export type MapVariant = PublicMapVariant | (string & {});
 
 const _desktop = isDesktopRuntime();
 
@@ -305,7 +312,7 @@ export const LAYER_EXPLANATIONS: Partial<Record<keyof MapLayers, LayerExplanatio
   },
 };
 
-const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
+const PUBLIC_VARIANT_LAYER_ORDER: Record<PublicMapVariant, Array<keyof MapLayers>> = {
   full: [
     'iranAttacks', 'hotspots', 'conflicts',
     'bases', 'nuclear', 'irradiators', 'radiationWatch', 'spaceports',
@@ -348,6 +355,20 @@ const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
   ],
 };
 
+/**
+ * Line-of-business layer sets, derived from src/config/mosaic/lob2maplayers.csv.
+ * `on` comes first so the picker lists default-on layers at the top, matching
+ * how the public variants order theirs.
+ */
+const LOB_LAYER_ORDER: Record<string, Array<keyof MapLayers>> = Object.fromEntries(
+  LOB_IDS.map((lob) => [lob, [...LOB_LAYERS[lob].on, ...LOB_LAYERS[lob].avail]]),
+);
+
+const VARIANT_LAYER_ORDER: Record<string, Array<keyof MapLayers>> = {
+  ...PUBLIC_VARIANT_LAYER_ORDER,
+  ...LOB_LAYER_ORDER,
+};
+
 const I18N_PREFIX = 'components.deckgl.layers.';
 
 // Iran-events domain sunset (war ended 2026-07). Default OFF: hide the layer
@@ -366,7 +387,10 @@ export function isSunsetLayer(key: keyof MapLayers): boolean {
 }
 
 export function getLayersForVariant(variant: MapVariant, renderer: MapRenderer): LayerDefinition[] {
-  const keys = VARIANT_LAYER_ORDER[variant] ?? VARIANT_LAYER_ORDER.full;
+  // Fall back through the public record, whose `full` key is statically known —
+  // VARIANT_LAYER_ORDER is string-indexed to admit generated LOB ids, so its
+  // own lookups are optional.
+  const keys = VARIANT_LAYER_ORDER[variant] ?? PUBLIC_VARIANT_LAYER_ORDER.full;
   return keys
     .filter(k => !isSunsetLayer(k))
     .map(k => LAYER_REGISTRY[k])
@@ -374,7 +398,9 @@ export function getLayersForVariant(variant: MapVariant, renderer: MapRenderer):
 }
 
 export function getAllowedLayerKeys(variant: MapVariant): Set<keyof MapLayers> {
-  return new Set((VARIANT_LAYER_ORDER[variant] ?? VARIANT_LAYER_ORDER.full).filter(k => !isSunsetLayer(k)));
+  return new Set(
+    (VARIANT_LAYER_ORDER[variant] ?? PUBLIC_VARIANT_LAYER_ORDER.full).filter(k => !isSunsetLayer(k)),
+  );
 }
 
 export function sanitizeLayersForVariant(layers: MapLayers, variant: MapVariant): MapLayers {

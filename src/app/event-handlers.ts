@@ -51,6 +51,7 @@ import {
   CANONICAL_FEEDS,
   INTEL_SOURCES,
 } from '@/config';
+import { isLobId } from '@/config/mosaic/lobs';
 import { resolveNewsCategories, enabledNewsCategoryKeys } from '@/config/feed-resolution';
 import { VARIANT_META } from '@/config/variant-meta';
 import { isDesktopRuntime } from '@/services/runtime';
@@ -1536,7 +1537,11 @@ export class EventHandlerManager implements AppModule {
     trackVariantSwitch(SITE_VARIANT, variant);
     await this.exitFullscreenForNavigation();
 
-    if (this.ctx.isDesktopApp || options.isLocalDev) {
+    // A LOB is served from the same host as every other LOB — there is no
+    // subdomain to navigate to, so it always switches in place. Without this
+    // the deployed (non-local) path would look up VARIANT_META[lob], find
+    // nothing, and return silently, leaving the switcher dead on production.
+    if (isLobId(variant) || this.ctx.isDesktopApp || options.isLocalDev) {
       if (stageVariantSelection(SITE_VARIANT, variant, writeStorageValue)) {
         window.location.reload();
       }

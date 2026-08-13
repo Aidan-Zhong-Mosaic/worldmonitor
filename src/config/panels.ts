@@ -1,5 +1,6 @@
 import type { PanelConfig, MapLayers, DataSourceId } from '@/types';
 import { SITE_VARIANT } from './variant';
+import { LOB_IDS, LOB_LAYERS, LOB_PANELS } from './mosaic/generated';
 // boundary-ignore: isDesktopRuntime is a pure env probe with no service dependencies
 import { isDesktopRuntime } from '@/services/runtime';
 // boundary-ignore: getSecretState is a pure env/keychain probe with no service dependencies
@@ -1117,7 +1118,7 @@ const ENERGY_MOBILE_MAP_LAYERS: MapLayers = {
 
 type PanelVariant = 'full' | 'tech' | 'finance' | 'commodity' | 'energy' | 'happy';
 
-const VARIANT_PANEL_CONFIGS: Record<PanelVariant, Record<string, PanelConfig>> = {
+const PUBLIC_VARIANT_PANEL_CONFIGS: Record<PanelVariant, Record<string, PanelConfig>> = {
   full: FULL_PANELS,
   tech: TECH_PANELS,
   finance: FINANCE_PANELS,
@@ -1125,12 +1126,6 @@ const VARIANT_PANEL_CONFIGS: Record<PanelVariant, Record<string, PanelConfig>> =
   energy: ENERGY_PANELS,
   happy: HAPPY_PANELS,
 };
-
-function getVariantPanelConfigs(variant: string): Record<string, PanelConfig> | undefined {
-  return Object.prototype.hasOwnProperty.call(VARIANT_PANEL_CONFIGS, variant)
-    ? VARIANT_PANEL_CONFIGS[variant as PanelVariant]
-    : undefined;
-}
 
 /** All panels from all variants — canonical cross-variant registry. */
 export const ALL_PANELS: Record<string, PanelConfig> = {
@@ -1142,15 +1137,49 @@ export const ALL_PANELS: Record<string, PanelConfig> = {
   ...FULL_PANELS,
 };
 
-/** Per-variant canonical panel order (keys = which panels are enabled by default). */
-export const VARIANT_DEFAULTS: Record<string, string[]> = {
-  full:      Object.keys(VARIANT_PANEL_CONFIGS.full),
-  tech:      Object.keys(VARIANT_PANEL_CONFIGS.tech),
-  finance:   Object.keys(VARIANT_PANEL_CONFIGS.finance),
-  commodity: Object.keys(VARIANT_PANEL_CONFIGS.commodity),
-  energy:    Object.keys(VARIANT_PANEL_CONFIGS.energy),
-  happy:     Object.keys(VARIANT_PANEL_CONFIGS.happy),
+/**
+ * Line-of-business panel sets, derived from src/config/mosaic/lob2panels.csv.
+ *
+ * Each LOB is registered as a variant so the existing variant machinery — panel
+ * seeding, the switch-and-reset path in App.ts, the free-tier cap — applies
+ * unchanged. Panel *definitions* still come from ALL_PANELS; the CSV only
+ * decides membership (offered at all) and default state (`ON` vs `avail`).
+ */
+const LOB_ID_SET: ReadonlySet<string> = new Set<string>(LOB_IDS);
+
+const LOB_PANEL_CONFIGS: Record<string, Record<string, PanelConfig>> = Object.fromEntries(
+  LOB_IDS.map((lob) => {
+    const { on, avail } = LOB_PANELS[lob];
+    const enabled = new Set<string>(on);
+    const configs: Record<string, PanelConfig> = {};
+    // `on` first: this order is the LOB's canonical panel order (VARIANT_DEFAULTS
+    // reads Object.keys), so default-on panels sort to the top of the grid.
+    for (const key of [...on, ...avail]) {
+      const base = ALL_PANELS[key];
+      // A CSV row naming a panel that no longer exists is skipped rather than
+      // fabricated — generate:mosaic reports the drift.
+      if (!base) continue;
+      configs[key] = { ...base, enabled: enabled.has(key) };
+    }
+    return [lob, configs];
+  }),
+);
+
+const VARIANT_PANEL_CONFIGS: Record<string, Record<string, PanelConfig>> = {
+  ...PUBLIC_VARIANT_PANEL_CONFIGS,
+  ...LOB_PANEL_CONFIGS,
 };
+
+function getVariantPanelConfigs(variant: string): Record<string, PanelConfig> | undefined {
+  return Object.prototype.hasOwnProperty.call(VARIANT_PANEL_CONFIGS, variant)
+    ? VARIANT_PANEL_CONFIGS[variant]
+    : undefined;
+}
+
+/** Per-variant canonical panel order (keys = which panels are enabled by default). */
+export const VARIANT_DEFAULTS: Record<string, string[]> = Object.fromEntries(
+  Object.entries(VARIANT_PANEL_CONFIGS).map(([variant, configs]) => [variant, Object.keys(configs)]),
+);
 
 /**
  * Variant-specific label overrides for panels shared across variants.
@@ -1415,29 +1444,50 @@ export const DEFAULT_PANELS: Record<string, PanelConfig> = Object.fromEntries(
   )
 );
 
-export const DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy'
-  ? HAPPY_MAP_LAYERS
-  : SITE_VARIANT === 'tech'
-    ? TECH_MAP_LAYERS
-    : SITE_VARIANT === 'finance'
-      ? FINANCE_MAP_LAYERS
-      : SITE_VARIANT === 'commodity'
-        ? COMMODITY_MAP_LAYERS
-        : SITE_VARIANT === 'energy'
-          ? ENERGY_MAP_LAYERS
-          : FULL_MAP_LAYERS;
+/**
+ * Line-of-business layer defaults, derived from lob2maplayers.csv. Every key in
+ * the MapLayers shape is present and false, then the LOB's `ON` set is switched
+ * on; `avail` layers stay off but are reachable because the same CSV feeds
+ * VARIANT_LAYER_ORDER (see map-layer-definitions.ts), which is what
+ * sanitizeLayersForVariant gates against.
+ */
+const LOB_MAP_LAYERS: Record<string, MapLayers> = Object.fromEntries(
+  LOB_IDS.map((lob) => {
+    const layers = {} as MapLayers;
+    for (const key of Object.keys(FULL_MAP_LAYERS) as Array<keyof MapLayers>) layers[key] = false;
+    for (const key of LOB_LAYERS[lob].avail) layers[key] = false;
+    for (const key of LOB_LAYERS[lob].on) layers[key] = true;
+    return [lob, layers];
+  }),
+);
 
-export const MOBILE_DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy'
-  ? HAPPY_MOBILE_MAP_LAYERS
-  : SITE_VARIANT === 'tech'
-    ? TECH_MOBILE_MAP_LAYERS
-    : SITE_VARIANT === 'finance'
-      ? FINANCE_MOBILE_MAP_LAYERS
-      : SITE_VARIANT === 'commodity'
-        ? COMMODITY_MOBILE_MAP_LAYERS
-        : SITE_VARIANT === 'energy'
-          ? ENERGY_MOBILE_MAP_LAYERS
-          : FULL_MOBILE_MAP_LAYERS;
+// Mobile shows the same LOB selection — the CSV is already a curated set, so
+// there is nothing extra to trim the way the broad public variants need.
+export const DEFAULT_MAP_LAYERS = LOB_MAP_LAYERS[SITE_VARIANT]
+  ?? (SITE_VARIANT === 'happy'
+    ? HAPPY_MAP_LAYERS
+    : SITE_VARIANT === 'tech'
+      ? TECH_MAP_LAYERS
+      : SITE_VARIANT === 'finance'
+        ? FINANCE_MAP_LAYERS
+        : SITE_VARIANT === 'commodity'
+          ? COMMODITY_MAP_LAYERS
+          : SITE_VARIANT === 'energy'
+            ? ENERGY_MAP_LAYERS
+            : FULL_MAP_LAYERS);
+
+export const MOBILE_DEFAULT_MAP_LAYERS = LOB_MAP_LAYERS[SITE_VARIANT]
+  ?? (SITE_VARIANT === 'happy'
+    ? HAPPY_MOBILE_MAP_LAYERS
+    : SITE_VARIANT === 'tech'
+      ? TECH_MOBILE_MAP_LAYERS
+      : SITE_VARIANT === 'finance'
+        ? FINANCE_MOBILE_MAP_LAYERS
+        : SITE_VARIANT === 'commodity'
+          ? COMMODITY_MOBILE_MAP_LAYERS
+          : SITE_VARIANT === 'energy'
+            ? ENERGY_MOBILE_MAP_LAYERS
+            : FULL_MOBILE_MAP_LAYERS);
 
 /** Maps map-layer toggle keys to their data-freshness source IDs (single source of truth). */
 export const LAYER_TO_SOURCE: Partial<Record<keyof MapLayers, DataSourceId[]>> = {
@@ -1602,8 +1652,14 @@ export function getVariantPanelCategories(
   panelSettings: Record<string, PanelConfig>,
   variant: string,
 ): VariantPanelCategory[] {
+  // PANEL_CATEGORY_MAP's `variants` allowlist only names the six public
+  // variants, so applying it to a LOB would hide every restricted category —
+  // most of the settings filter and the whole mobile category nav. A LOB draws
+  // panels from across all variants by design, so its categories are decided by
+  // the enabled-panel check below instead.
+  const isLob = LOB_ID_SET.has(variant);
   return Object.entries(PANEL_CATEGORY_MAP)
-    .filter(([, def]) => !def.variants || def.variants.includes(variant))
+    .filter(([, def]) => isLob || !def.variants || def.variants.includes(variant))
     .filter(([, def]) => def.panelKeys.some((pk) => panelSettings[pk]?.enabled))
     .map(([key, def]) => ({ key, labelKey: def.labelKey, panelKeys: def.panelKeys }));
 }

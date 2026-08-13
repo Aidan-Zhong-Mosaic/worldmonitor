@@ -24,6 +24,7 @@ import type { AviationCommandBar } from '@/components/AviationCommandBar';
 import { MobilePanelNav } from '@/components/MobilePanelNav';
 import { debounce, loadFromStorage, saveToStorage } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
+import { LOBS } from '@/config/mosaic/lobs';
 import {
   CANONICAL_FEEDS,
   STORAGE_KEYS,
@@ -897,67 +898,21 @@ export class PanelLayoutManager implements AppModule {
       <div id="proBannerSlot" class="pro-banner-slot" aria-live="polite"></div>
       <div class="header">
         <div class="header-left">
-          <div class="variant-switcher">${(() => {
-        const local = this.ctx.isDesktopApp || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const inIframe = window.self !== window.top;
-        const vHref = (v: keyof typeof VARIANT_SWITCHER_DASHBOARD_URLS) =>
-          variantSwitcherHref(v, SITE_VARIANT, local);
-        const vTarget = (v: string) => !local && SITE_VARIANT !== v && inIframe ? 'target="_blank" rel="noopener"' : '';
-        return `
-            <a href="${vHref('full')}"
-               class="variant-option ${SITE_VARIANT === 'full' ? 'active' : ''}"
-               data-variant="full"
-               ${vTarget('full')}
-               title="${t('header.world')}${SITE_VARIANT === 'full' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">🌍</span>
-              <span class="variant-label">${t('header.world')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('tech')}"
-               class="variant-option ${SITE_VARIANT === 'tech' ? 'active' : ''}"
-               data-variant="tech"
-               ${vTarget('tech')}
-               title="${t('header.tech')}${SITE_VARIANT === 'tech' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">💻</span>
-              <span class="variant-label">${t('header.tech')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('finance')}"
-               class="variant-option ${SITE_VARIANT === 'finance' ? 'active' : ''}"
-               data-variant="finance"
-               ${vTarget('finance')}
-               title="${t('header.finance')}${SITE_VARIANT === 'finance' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">📈</span>
-              <span class="variant-label">${t('header.finance')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('commodity')}"
-               class="variant-option ${SITE_VARIANT === 'commodity' ? 'active' : ''}"
-               data-variant="commodity"
-               ${vTarget('commodity')}
-               title="${t('header.commodity')}${SITE_VARIANT === 'commodity' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">⛏️</span>
-              <span class="variant-label">${t('header.commodity')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('energy')}"
-               class="variant-option ${SITE_VARIANT === 'energy' ? 'active' : ''}"
-               data-variant="energy"
-               ${vTarget('energy')}
-               title="${t('header.energy')}${SITE_VARIANT === 'energy' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">⚡</span>
-              <span class="variant-label">${t('header.energy')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('happy')}"
-               class="variant-option ${SITE_VARIANT === 'happy' ? 'active' : ''}"
-               data-variant="happy"
-               ${vTarget('happy')}
-               title="Good News${SITE_VARIANT === 'happy' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">☀️</span>
-              <span class="variant-label">Good News</span>
-            </a>`;
-      })()}</div>
+          <div class="variant-switcher lob-switcher">${
+        // Line-of-business switcher. Each LOB id is registered as a variant id,
+        // so these reuse .variant-option — the existing click handler, active
+        // styling, and App's variant-reset path all apply unchanged. LOBs have
+        // no subdomain, so every href is '#' and the switch is always handled
+        // in-page by navigateToVariant.
+        LOBS.map((lob) => `
+            <a href="#"
+               class="variant-option ${SITE_VARIANT === lob.id ? 'active' : ''}"
+               data-variant="${lob.id}"
+               title="${escapeHtml(lob.label)}${SITE_VARIANT === lob.id ? ` ${t('common.currentVariant')}` : ''}">
+              <span class="variant-icon">${lob.icon}</span>
+              <span class="variant-label">${escapeHtml(lob.shortLabel)}</span>
+            </a>`).join('<span class="variant-divider"></span>')
+      }</div>
           <span class="logo">MONITOR</span><span class="logo-mobile">World Monitor</span><span class="version">v${__APP_VERSION__}</span>${BETA_MODE ? '<span class="beta-badge">BETA</span>' : ''}
           <a href="https://x.com/eliehabib" target="_blank" rel="noopener" class="credit-link">
             <svg class="x-logo" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>

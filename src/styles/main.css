@@ -448,6 +448,48 @@ canvas,
   opacity: 1;
 }
 
+/* ---------- line-of-business switcher ---------- */
+/* Eight LOBs sit where six variants did, and the labels ("Transactional",
+   "Environmental") are longer than the 50px variant labels. Expanding all eight
+   on bar-hover would overrun the header, so the bar-wide reveal is cancelled and
+   only the active chip — plus whichever one is under the cursor — shows text. */
+.lob-switcher:hover .variant-option .variant-label {
+  max-width: 0;
+  opacity: 0;
+}
+
+.lob-switcher .variant-option {
+  letter-spacing: 0.5px;
+}
+
+.lob-switcher .variant-option:hover .variant-label,
+.lob-switcher .variant-option.active .variant-label {
+  max-width: 96px;
+  opacity: 1;
+}
+
+/* Per-LOB active accent. Defaults to the shared green in .variant-option.active;
+   these override the books that read better in their own hue. */
+.lob-switcher .variant-option[data-variant="cyber"].active {
+  color: var(--semantic-info);
+  background: rgba(74, 158, 255, 0.1);
+}
+
+.lob-switcher .variant-option[data-variant="cyber"].active .variant-icon {
+  filter: grayscale(0%) drop-shadow(0 0 4px var(--semantic-info));
+}
+
+.lob-switcher .variant-option[data-variant="political-violence"].active,
+.lob-switcher .variant-option[data-variant="political-risk"].active {
+  color: var(--semantic-danger, #ff6b6b);
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.lob-switcher .variant-option[data-variant="political-violence"].active .variant-icon,
+.lob-switcher .variant-option[data-variant="political-risk"].active .variant-icon {
+  filter: grayscale(0%) drop-shadow(0 0 4px var(--semantic-danger, #ff6b6b));
+}
+
 .mission-preset-mount {
   display: inline-flex;
   align-items: center;
