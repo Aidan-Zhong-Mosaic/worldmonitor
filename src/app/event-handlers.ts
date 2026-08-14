@@ -15,6 +15,7 @@ import {
 } from '@/config/map-layer-definitions';
 import {
   FREE_MAX_PANELS,
+  FREE_PANEL_CAP,
   FREE_MAX_SOURCES,
   countFreePanelCapUsage,
   isFreePanelCapCounted,
@@ -344,7 +345,7 @@ export class EventHandlerManager implements AppModule {
     if (config.enabled) return true;
     if (!isProUser() && isFreePanelCapCounted(panelId)) {
       const enabledCount = countFreePanelCapUsage(this.ctx.panelSettings);
-      if (enabledCount >= FREE_MAX_PANELS) {
+      if (enabledCount >= FREE_PANEL_CAP) {
         // Tell the user why nothing happened instead of failing silently.
         // (Undo-restore can't reach this branch — closing a panel frees a
         // slot first — so only the CMD+K "Add" path surfaces the toast.)

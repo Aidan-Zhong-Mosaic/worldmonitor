@@ -10,7 +10,7 @@ import {
   VARIANT_DEFAULTS,
   getEffectivePanelConfig,
   isPanelEntitled,
-  FREE_MAX_PANELS,
+  FREE_PANEL_CAP,
   countFreePanelCapUsage,
   userSetPanelEnabled,
   isFreePanelCapCounted,
@@ -93,7 +93,7 @@ export function initSettingsWindow(): void {
             if (!config.enabled && !isPanelEntitled(panelKey, resolvedConfig, isProUser())) return;
             if (!config.enabled && !isProUser() && isFreePanelCapCounted(panelKey)) {
               const enabledCount = countFreePanelCapUsage(panelSettings);
-              if (enabledCount >= FREE_MAX_PANELS) return;
+              if (enabledCount >= FREE_PANEL_CAP) return;
             }
             userSetPanelEnabled(config, !config.enabled);
             saveToStorage(STORAGE_KEYS.panels, panelSettings);

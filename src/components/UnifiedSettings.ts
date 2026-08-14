@@ -9,6 +9,7 @@ import {
   getVariantPanelCategories,
   isPanelEntitled,
   FREE_MAX_PANELS,
+  FREE_PANEL_CAP,
   countFreePanelCapUsage,
   isFreePanelCapCounted,
   isPanelInVariantDefaults,
@@ -1217,7 +1218,7 @@ export class UnifiedSettings {
     if (!panel.enabled && !isPanelEntitled(key, resolvedPanel, isProUser())) return;
     if (!panel.enabled && !isProUser() && isFreePanelCapCounted(key)) {
       const enabledCount = countFreePanelCapUsage(this.draftPanelSettings);
-      if (enabledCount >= FREE_MAX_PANELS) {
+      if (enabledCount >= FREE_PANEL_CAP) {
         showToast(t('modals.settingsWindow.freePanelLimit', { max: String(FREE_MAX_PANELS) }));
         return;
       }

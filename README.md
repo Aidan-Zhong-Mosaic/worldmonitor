@@ -70,6 +70,8 @@ will be in the csv
 
 Replace the different variants of the original code into the 8 LOBs we have; apply the mapping strategy. 
 
+added an all page that display every panel and maplayers.
+
 # demo
 
 ---
@@ -83,9 +85,9 @@ function names are the stable part.
 The one structural idea to hold onto: **a LOB is registered as a variant id.**
 Upstream World Monitor already had a six-variant system (`full`, `tech`,
 `finance`, `commodity`, `energy`, `happy`) with panel seeding, layer gating,
-and a switch-and-reset path. The eight LOBs are injected into those same
+and a switch-and-reset path. The nine lines are injected into those same
 registries, so nothing on this path is LOB-specific machinery — it is the
-variant machinery with eight more ids in it.
+variant machinery with nine more ids in it.
 
 ## The route at a glance
 
@@ -117,7 +119,7 @@ Nothing at runtime reads the CSVs. `npm run generate:mosaic`
 
 | Export | Shape | Meaning |
 | --- | --- | --- |
-| `LOB_IDS` | `readonly string[]` | the eight LOB ids, also used as variant ids |
+| `LOB_IDS` | `readonly string[]` | the nine line ids, also used as variant ids |
 | `LOB_PANELS` | `Record<LobId, {on, avail}>` | `on` = default-enabled, `avail` = offered but off |
 | `LOB_LAYERS` | `Record<LobId, {on, avail}>` | same split for map layers |
 
@@ -125,18 +127,59 @@ Nothing at runtime reads the CSVs. `npm run generate:mosaic`
 directly. `src/config/mosaic/lobs.ts` wraps it with display metadata (`LOBS`:
 label, shortLabel, icon) and the `isLobId()` / `getLobMeta()` helpers.
 
-Current sizes:
+Current sizes (panels | layers):
 
-| LOB | default-on | also offered |
-| --- | ---: | ---: |
-| political-violence | 23 | 29 |
-| cyber | 10 | 15 |
-| political-risk | 51 | 39 |
-| transactional-liability | 22 | 65 |
-| financial-institutions | 38 | 27 |
-| professional-liability | 13 | 19 |
-| environmental-liability | 18 | 16 |
-| specialty-casualty | 11 | 21 |
+| line | panels on | panels offered | layers on | layers offered |
+| --- | ---: | ---: | ---: | ---: |
+| political-violence | 23 | 52 | 10 | 31 |
+| cyber | 10 | 25 | 6 | 13 |
+| political-risk | 51 | 90 | 20 | 36 |
+| transactional-liability | 22 | 87 | 9 | 26 |
+| financial-institutions | 38 | 65 | 7 | 19 |
+| professional-liability | 13 | 32 | 5 | 17 |
+| environmental-liability | 18 | 34 | 13 | 24 |
+| specialty-casualty | 11 | 32 | 6 | 29 |
+| **all-lines** | **159** | **159** | **0** | **56** |
+
+### The `all-lines` catalogue view
+
+`all-lines` is the ninth chip and is deliberately **not** a column in either
+CSV. `scripts/generate-mosaic-config.mjs` synthesizes it from every row in both
+files (`ALL_LINES_ID`, `ALL_LINES_PANELS_ON`, `ALL_LINES_LAYERS_ON`), so it
+stays complete for free — a hand-maintained column would need 215 `avail` cells
+today and one more for every panel or layer added later.
+
+The two halves are deliberately asymmetric, because panels and layers composite
+differently:
+
+- **Every panel is on.** `ALL_LINES_PANELS_ON = null` tells the generator
+  "every key in the CSV," so `LOB_PANELS['all-lines'].avail` is empty. The
+  panel grid is a vertical scroll, so "everything at once" just means a long
+  page — that IS the point of this view.
+- **Every layer is offered, none is on.** `LOB_LAYERS['all-lines'].on` is empty,
+  so `DEFAULT_MAP_LAYERS` for this line is all-`false` and the map opens clean;
+  `VARIANT_LAYER_ORDER['all-lines']` carries all 56 keys, so the picker offers
+  55 of them (`iranAttacks` is stripped by `isSunsetLayer`) — more than any
+  other variant, `full` included at 36. Layers composite onto one map, so
+  "everything at once" is 56 overlapping overlays and an unreadable map, not a
+  catalogue — they stay reachable but opt-in instead.
+
+**The free-tier panel cap does not apply here.** `enforceFreePanelLimit()`
+(`src/config/panels.ts`) normally clamps a free/anonymous session to
+`FREE_MAX_PANELS` (40), stamping the overflow `proGated`. On every real line
+that is correct — it is the same cap settings/search/tab-add all enforce. But
+on `all-lines` it would hide 119 of 159 panels behind a paywall with no upsell
+moment, since there is nothing to buy that makes "the catalogue view" bigger —
+the page would just look broken. `FREE_PANEL_CAP` reads the module-level
+`SITE_VARIANT` and resolves to `Infinity` when it is `'all-lines'`, `FREE_MAX_PANELS`
+otherwise; every call site that gated on the count (`event-handlers.ts`,
+`UnifiedSettings.ts`, `settings-window.ts`) reads `FREE_PANEL_CAP`, not the raw
+constant, so the bypass is uniform across the toggle-one-at-a-time paths too.
+
+It is not an underwriting line — it is the "show me everything this build has"
+surface, for demos and for deciding what belongs in a real LOB.
+`tests/mosaic-lob-registry.test.mts` locks the panel/layer shape, plus the rule
+that anything offered by any other line must also be offered here.
 
 ## Phase 1 — module load: the LOB becomes a variant
 
@@ -373,6 +416,23 @@ panel that just became enabled, toggles placeholder visibility, or calls
 - **Panel definitions live in `ALL_PANELS`, membership lives in the CSV.** To
   add a panel to a LOB, edit the CSV and re-run `npm run generate:mosaic`. To
   change what a panel *is*, edit `panels.ts`.
+- **Adding a line means touching three lists.** `LOB_IDS` (generated), `LOBS`
+  in `mosaic/lobs.ts` (the header chip), and the inlined `LOB_VARIANTS` in
+  `config/variant.ts` — the last is deliberately not imported from the
+  generated file, so only `tests/mosaic-lob-registry.test.mts` connects them. A
+  line missing from `LOBS` has no chip; one missing from `LOB_VARIANTS` cannot
+  be persisted, so its chip reloads straight back to the previous line.
+
+## Known gap: the SVG / mobile fallback map
+
+`src/components/Map.ts` — the non-WebGL fallback renderer — picks its layer
+list from a hardcoded `SITE_VARIANT === 'tech' | 'finance' | 'happy' | 'energy'`
+chain with `fullLayers` as the fallback. It predates the LOB work and has no
+line-of-business branch, so **every line (all nine) gets `full`'s ~20 SVG layers
+there** rather than its own set. The DeckGL path is unaffected — it reads
+`getLayersForVariant()` and is correct per line. Fixing it means intersecting
+each line's layer order with the SVG-renderable subset that file actually draws,
+which is why the lists were hardcoded in the first place.
 
 ## Debugging checklist
 
@@ -380,7 +440,7 @@ panel that just became enabled, toggles placeholder visibility, or calls
 | --- | --- |
 | No panels at all after switching | `applyVariantPanelLayoutTransition()` — is the new LOB's `on` set actually being seeded? |
 | One panel missing everywhere | Is its key in `_all-panels.csv` **and** in `ALL_PANELS`? `LOB_PANEL_CONFIGS` silently skips unknown keys. |
-| Panel in Cmd+K but not on the grid | `enabled: false` in `panelSettings`, or `proGated` from the 40-panel free cap. |
+| Panel in Cmd+K but not on the grid | `enabled: false` in `panelSettings`, or `proGated` from the free-tier cap (`FREE_PANEL_CAP` — 40 on real lines, uncapped on `all-lines`). |
 | Panels appear then vanish | Free-tier clamp landing after boot — `enforceFreeTierLimits()`. |
 | Switcher does nothing in production | `isLobId()` guard in `navigateToVariant()`. |
 | Layers wrong but panels right | `VARIANT_LAYER_ORDER` / `sanitizeLayersForVariant()`, not the panel path. |

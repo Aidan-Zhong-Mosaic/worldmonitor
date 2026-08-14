@@ -29,6 +29,24 @@ const LOB_IDS = {
   'Specialty casualty': 'specialty-casualty',
 };
 
+/**
+ * A ninth line that is deliberately NOT a column in either CSV: it offers every
+ * panel and every layer the CSVs know about, as the catalogue/exploration view.
+ * Synthesizing it keeps it complete for free — a hand-maintained column would
+ * need 215 `avail` cells today and one more for every panel or layer added
+ * later, and would silently fall behind the moment someone forgot.
+ *
+ * The two halves are deliberately asymmetric:
+ *   - PANELS are all ON. The grid is a vertical list, so "everything at once"
+ *     is a long scroll rather than a mess, and that is the point of the page.
+ *   - LAYERS are all OFF but offered. They composite onto one map, and 56
+ *     simultaneous overlays is an unreadable map, not a catalogue.
+ */
+const ALL_LINES_ID = 'all-lines';
+/** `null` means "every key in the CSV" — see synthesizeAllLines. */
+const ALL_LINES_PANELS_ON = null;
+const ALL_LINES_LAYERS_ON = [];
+
 function parse(file) {
   const text = fs.readFileSync(path.join(mosaicDir, file), 'utf8').trim();
   const [headerLine, ...lines] = text.split(/\r?\n/);
@@ -39,8 +57,10 @@ function parse(file) {
     if (!LOB_IDS[col]) throw new Error(`${file}: unknown LOB column "${col}"`);
   }
 
-  const result = {};
-  for (const col of lobCols) result[LOB_IDS[col]] = { on: [], avail: [] };
+  const selections = {};
+  for (const col of lobCols) selections[LOB_IDS[col]] = { on: [], avail: [] };
+  /** Every row key, in CSV order — the input to the synthetic all-lines entry. */
+  const keys = [];
 
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -50,22 +70,47 @@ function parse(file) {
     }
     const key = cells[0].trim();
     if (!key) continue;
+    keys.push(key);
     lobCols.forEach((col, i) => {
       const v = cells[i + 1].trim();
       if (!v) return;
       if (v !== 'ON' && v !== 'avail') {
         throw new Error(`${file}: row "${key}" column "${col}" has invalid value "${v}" (expected ON, avail, or empty)`);
       }
-      result[LOB_IDS[col]][v === 'ON' ? 'on' : 'avail'].push(key);
+      selections[LOB_IDS[col]][v === 'ON' ? 'on' : 'avail'].push(key);
     });
   }
-  return result;
+  return { selections, keys };
 }
 
-const panels = parse('lob2panels.csv');
-const layers = parse('lob2maplayers.csv');
+/**
+ * Build the all-lines entry: `on` as declared (or every key when `null`),
+ * everything else `avail`. The membership check is the guard that matters — a
+ * renamed or deleted key would otherwise drop out of `on` silently, and a page
+ * that quietly stops showing something is indistinguishable from a broken one.
+ */
+function synthesizeAllLines(file, keys, on) {
+  if (on === null) return { on: [...keys], avail: [] };
+  const missing = on.filter((key) => !keys.includes(key));
+  if (missing.length > 0) {
+    throw new Error(`${file}: all-lines default-on key(s) absent from the CSV: ${missing.join(', ')}`);
+  }
+  return { on: [...on], avail: keys.filter((key) => !on.includes(key)) };
+}
 
-const ids = Object.values(LOB_IDS);
+const panelsCsv = parse('lob2panels.csv');
+const layersCsv = parse('lob2maplayers.csv');
+
+const panels = {
+  ...panelsCsv.selections,
+  [ALL_LINES_ID]: synthesizeAllLines('lob2panels.csv', panelsCsv.keys, ALL_LINES_PANELS_ON),
+};
+const layers = {
+  ...layersCsv.selections,
+  [ALL_LINES_ID]: synthesizeAllLines('lob2maplayers.csv', layersCsv.keys, ALL_LINES_LAYERS_ON),
+};
+
+const ids = [...Object.values(LOB_IDS), ALL_LINES_ID];
 const lit = (arr) => (arr.length ? `[${arr.map((s) => `'${s}'`).join(', ')}]` : '[]');
 const block = (data) =>
   ids
@@ -75,6 +120,10 @@ const block = (data) =>
 const out = `// GENERATED FILE — DO NOT EDIT.
 // Source: src/config/mosaic/lob2panels.csv, src/config/mosaic/lob2maplayers.csv
 // Regenerate with: npm run generate:mosaic
+//
+// '${ALL_LINES_ID}' has no CSV column: it is synthesized from every row in both
+// files (see ALL_LINES_* in scripts/generate-mosaic-config.mjs) so the
+// catalogue view stays complete without hand-maintained cells.
 import type { MapLayers } from '@/types';
 
 export const LOB_IDS = [

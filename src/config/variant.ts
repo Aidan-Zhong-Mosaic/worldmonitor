@@ -24,6 +24,8 @@ const LOB_VARIANTS = [
   'political-violence', 'cyber', 'political-risk', 'transactional-liability',
   'financial-institutions', 'professional-liability', 'environmental-liability',
   'specialty-casualty',
+  // Catalogue view — every panel and layer, almost all default-off.
+  'all-lines',
 ] as const;
 
 /** A variant id that may be selected and persisted — public variant or LOB. */

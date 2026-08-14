@@ -21,7 +21,7 @@ export interface LobMeta {
   id: LobId;
   /** Full name, used for tooltips and settings. */
   label: string;
-  /** Compact name for the header switcher — eight of these share one row. */
+  /** Compact name for the header switcher — nine of these share one row. */
   shortLabel: string;
   icon: string;
 }
@@ -35,7 +35,14 @@ export const LOBS: readonly LobMeta[] = [
   { id: 'professional-liability',  label: 'Professional Liability',  shortLabel: 'Professional',  icon: '⚖️' },
   { id: 'environmental-liability', label: 'Environmental Liability', shortLabel: 'Environmental', icon: '🌿' },
   { id: 'specialty-casualty',      label: 'Specialty Casualty',      shortLabel: 'Casualty',      icon: '🛡️' },
+  // Catalogue view, last in the row: every panel and every layer this build
+  // knows about. Not an underwriting line — it is the "show me everything that
+  // exists" surface for demos and for deciding what belongs in a real LOB.
+  { id: 'all-lines',               label: 'All Panels & Layers',     shortLabel: 'All',           icon: '🌐' },
 ] as const;
+
+/** The catalogue LOB — offers everything, turns on almost nothing. */
+export const ALL_LINES_LOB: LobId = 'all-lines';
 
 /** The LOB a fresh install lands on. */
 export const DEFAULT_LOB: LobId = 'political-violence';

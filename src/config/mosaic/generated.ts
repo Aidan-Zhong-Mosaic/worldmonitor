@@ -1,6 +1,10 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: src/config/mosaic/lob2panels.csv, src/config/mosaic/lob2maplayers.csv
 // Regenerate with: npm run generate:mosaic
+//
+// 'all-lines' has no CSV column: it is synthesized from every row in both
+// files (see ALL_LINES_* in scripts/generate-mosaic-config.mjs) so the
+// catalogue view stays complete without hand-maintained cells.
 import type { MapLayers } from '@/types';
 
 export const LOB_IDS = [
@@ -12,6 +16,7 @@ export const LOB_IDS = [
   'professional-liability',
   'environmental-liability',
   'specialty-casualty',
+  'all-lines',
 ] as const;
 
 export type LobId = (typeof LOB_IDS)[number];
@@ -56,6 +61,10 @@ export const LOB_PANELS: Record<LobId, LobSelection> = {
     on: ['map', 'live-news', 'insights', 'airline-intel', 'monitors', 'storage-facility-map', 'climate', 'disaster-correlation', 'satellite-fires', 'disease-outbreaks', 'population-exposure'],
     avail: ['renewable', 'energy', 'mining-news', 'mining-companies', 'supply-chain', 'pipeline-status', 'consumer-prices', 'world-clock', 'latest-brief', 'chokepoint-strip', 'fuel-shortages', 'energy-disruptions', 'fuel-prices', 'live-webcams', 'windy-webcams', 'global-procurement', 'strategic-risk', 'cascade', 'chat-analyst', 'climate-news', 'radiation-watch'],
   },
+  'all-lines': {
+    on: ['map', 'positive-feed', 'progress', 'counters', 'spotlight', 'breakthroughs', 'digest', 'species', 'renewable', 'giving', 'live-news', 'insights', 'commodity-news', 'liquidity-shifts', 'news-market-correlation', 'positioning-247', 'gold-silver', 'energy', 'mining-news', 'critical-minerals', 'base-metals', 'mining-companies', 'supply-chain', 'china-corridors', 'china-activity-nowcast', 'commodity-regulation', 'markets', 'commodities', 'energy-complex', 'pipeline-status', 'oil-inventories', 'gold-intelligence', 'heatmap', 'macro-signals', 'trade-policy', 'sanctions-pressure', 'economic', 'gulf-economies', 'gcc-investments', 'consumer-prices', 'airline-intel', 'polymarket', 'world-clock', 'monitors', 'latest-brief', 'energy-risk-overview', 'chokepoint-strip', 'storage-facility-map', 'fuel-shortages', 'energy-disruptions', 'hormuz-tracker', 'energy-crisis', 'fuel-prices', 'climate', 'live-webcams', 'windy-webcams', 'ai', 'tech', 'startups', 'vcblogs', 'regionalStartups', 'unicorns', 'accelerators', 'security', 'policy', 'layoffs', 'finance', 'crypto', 'hardware', 'cloud', 'dev', 'github', 'ipo', 'funding', 'producthunt', 'events', 'internet-disruptions', 'service-status', 'global-procurement', 'tech-readiness', 'etf-flows', 'stablecoins', 'tech-hubs', 'ai-regulation', 'stock-analysis', 'stock-backtest', 'daily-market-brief', 'markets-news', 'forex', 'fx', 'bonds', 'commodities-news', 'crypto-news', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens', 'centralbanks', 'economic-news', 'macro-tiles', 'fear-greed', 'aaii-sentiment', 'market-breadth', 'fsi', 'yield-curve', 'earnings-calendar', 'economic-calendar', 'cot-positioning', 'derivatives', 'fintech', 'fin-regulation', 'institutional', 'analysis', 'gccNews', 'wsb-ticker-scanner', 'threat-timeline', 'strategic-posture', 'forecast', 'cii', 'strategic-risk', 'intel', 'gdelt-intel', 'cascade', 'military-correlation', 'escalation-correlation', 'economic-correlation', 'disaster-correlation', 'politics', 'us', 'europe', 'middleeast', 'africa', 'latam', 'asia', 'gov', 'thinktanks', 'chat-analyst', 'satellite-fires', 'grocery-basket', 'bigmac', 'fao-food-price-index', 'ucdp-events', 'disease-outbreaks', 'social-velocity', 'displacement', 'climate-news', 'population-exposure', 'security-advisories', 'defense-patents', 'radiation-watch', 'thermal-escalation', 'oref-sirens', 'telegram-intel', 'national-debt', 'cross-source-signals', 'market-implications', 'regional-intelligence', 'deduction', 'geo-hubs'],
+    avail: [],
+  },
 };
 
 export const LOB_LAYERS: Record<LobId, LobSelection<keyof MapLayers>> = {
@@ -90,5 +99,9 @@ export const LOB_LAYERS: Record<LobId, LobSelection<keyof MapLayers>> = {
   'specialty-casualty': {
     on: ['weather', 'natural', 'fires', 'processingPlants', 'diseaseOutbreaks', 'storageFacilities'],
     avail: ['hotspots', 'conflicts', 'nuclear', 'irradiators', 'radiationWatch', 'spaceports', 'pipelines', 'datacenters', 'ais', 'tradeRoutes', 'flights', 'protests', 'climate', 'waterways', 'gpsJamming', 'ciiChoropleth', 'resilienceScore', 'renewableInstallations', 'miningSites', 'commodityPorts', 'webcams', 'fuelShortages', 'liveTankers'],
+  },
+  'all-lines': {
+    on: [],
+    avail: ['iranAttacks', 'hotspots', 'conflicts', 'bases', 'nuclear', 'irradiators', 'radiationWatch', 'spaceports', 'satellites', 'cables', 'pipelines', 'datacenters', 'military', 'ais', 'tradeRoutes', 'flights', 'protests', 'ucdpEvents', 'displacement', 'climate', 'weather', 'outages', 'cyberThreats', 'natural', 'fires', 'waterways', 'economic', 'minerals', 'gpsJamming', 'ciiChoropleth', 'resilienceScore', 'dayNight', 'sanctions', 'startupHubs', 'techHQs', 'accelerators', 'cloudRegions', 'techEvents', 'stockExchanges', 'financialCenters', 'centralBanks', 'commodityHubs', 'gulfInvestments', 'positiveEvents', 'kindness', 'happiness', 'speciesRecovery', 'renewableInstallations', 'miningSites', 'processingPlants', 'commodityPorts', 'webcams', 'diseaseOutbreaks', 'storageFacilities', 'fuelShortages', 'liveTankers'],
   },
 };

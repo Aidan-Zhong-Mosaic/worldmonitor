@@ -70,6 +70,7 @@ export {
   userSetPanelEnabled,
   shouldDeferFreeTierEnforcement,
   FREE_MAX_PANELS,
+  FREE_PANEL_CAP,
   FREE_MAX_SOURCES,
 } from './panels';
 

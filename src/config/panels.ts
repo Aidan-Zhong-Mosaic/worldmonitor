@@ -1258,6 +1258,24 @@ export function isPanelInVariantDefaults(key: string): boolean {
 export const FREE_MAX_PANELS = 40;
 export const FREE_MAX_SOURCES = 80;
 
+/**
+ * The panel-count cap in force on the active line.
+ *
+ * `all-lines` is the catalogue view: every panel on at once is its entire
+ * purpose, and a 40-panel cap would hide 118 of its 159 — the page would read
+ * as broken rather than as gated, since there is no upsell moment on a surface
+ * whose job is "show me what this build has". Every real line stays capped, and
+ * the cw-* custom-widget gate in `enforceFreePanelLimit` still applies here:
+ * that gate is about authoring widgets, not about how many panels fit.
+ *
+ * Read from the module-level SITE_VARIANT the same way SITE_VARIANT_DEFAULTS
+ * above is — the active line is fixed for the session.
+ */
+const ALL_LINES_VARIANT = 'all-lines';
+export const FREE_PANEL_CAP = SITE_VARIANT === ALL_LINES_VARIANT
+  ? Number.POSITIVE_INFINITY
+  : FREE_MAX_PANELS;
+
 export function isFreePanelCapCounted(key: string): boolean {
   return key !== 'map' && !key.startsWith('cw-');
 }
@@ -1352,7 +1370,7 @@ export function enforceFreePanelLimit(
   // stayed `enabled: false` forever. Going Pro never brought it back: the panel
   // kept appearing in Cmd+K and as a checked box in settings while being absent
   // from the dashboard.
-  for (const key of enabledKeys.slice(FREE_MAX_PANELS)) {
+  for (const key of enabledKeys.slice(FREE_PANEL_CAP)) {
     next[key] = { ...next[key]!, enabled: false, proGated: true };
   }
 
