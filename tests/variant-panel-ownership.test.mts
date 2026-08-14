@@ -156,6 +156,40 @@ describe('variant panel ownership', () => {
     assert.deepEqual(persisted, result);
   });
 
+  // Boot merges every ALL_PANELS key into the stored blob, so by the second boot
+  // no in-variant key is ever "missing". Seeding only the missing ones therefore
+  // applied the new variant's defaults to nothing, and each switch carried
+  // forward the intersection with the previous variant — consecutive switches
+  // (the normal case for same-origin lines of business) emptied the dashboard.
+  it('seeds the new variant defaults over keys the previous variant left disabled', () => {
+    const result = applyVariantPanelLayoutTransition({
+      currentVariant: 'cyber',
+      panelSettings: {
+        // Present but disabled: not offered by the variant we are leaving.
+        security: { name: 'Cybersecurity', enabled: false },
+        // Present and enabled, but off by default in the variant we are entering.
+        forecast: { name: 'AI Forecasts', enabled: true },
+        // A user font-scale choice is not a variant opinion and must ride through.
+        cloud: { name: 'Cloud & Infrastructure', enabled: false, fontScale: 1.25 },
+      },
+      variantPanelKeys: new Set(['security', 'forecast', 'cloud']),
+      isDynamicPanel: () => false,
+      getDefaultPanel: (key) => ({
+        name: key,
+        enabled: key !== 'forecast',
+        priority: 1,
+      }),
+      persistPanels: () => {},
+      persistAppliedVariant: () => {},
+    });
+
+    assert.equal(result.security?.enabled, true, 'default-on panel is re-enabled');
+    assert.equal(result.forecast?.enabled, false, 'default-off panel is turned back off');
+    assert.equal(result.security?.name, 'security', 'the new variant owns the label');
+    assert.equal(result.cloud?.enabled, true);
+    assert.equal(result.cloud?.fontScale, 1.25, 'font scale survives the variant reset');
+  });
+
   it('does not advance the applied marker when panel persistence fails', () => {
     const events: string[] = [];
     const result = applyVariantPanelLayoutTransition({

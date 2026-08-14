@@ -125,8 +125,29 @@ export function applyVariantPanelLayoutTransition(
       userSetPanelEnabled(config, false);
     }
   }
+  // Re-seed EVERY key the new variant offers, not just the ones absent from the
+  // stored blob. App boot merges all of ALL_PANELS into panelSettings so any
+  // panel stays cross-enableable, which means by the second boot every key is
+  // already present — an "only if missing" seed therefore applied the new
+  // variant's defaults to nothing at all, and each switch carried the PREVIOUS
+  // variant's enabled set through the filter above. The surviving set is the
+  // intersection of the two variants, so consecutive switches shrink it
+  // monotonically toward empty (a dashboard with no panels after two or three
+  // hops). Lines of business made this reachable in normal use: they all share
+  // one origin and switch in place, where the public variants each had their
+  // own subdomain and therefore their own localStorage.
+  //
+  // `fontScale` is a per-panel display preference with no variant opinion, so it
+  // rides through; everything else (name, priority, premium, enabled) comes from
+  // the new variant's definition. userSetPanelEnabled clears any `proGated`
+  // marker — the reset re-establishes the enabled state, so the free-tier gate no
+  // longer owns it (App re-runs enforceFreePanelLimit right after this).
   for (const key of options.variantPanelKeys) {
-    if (!(key in next)) next[key] = { ...options.getDefaultPanel(key) };
+    const seeded: PanelConfig = { ...options.getDefaultPanel(key) };
+    const fontScale = next[key]?.fontScale;
+    if (fontScale !== undefined) seeded.fontScale = fontScale;
+    userSetPanelEnabled(seeded, seeded.enabled);
+    next[key] = seeded;
   }
 
   try {
