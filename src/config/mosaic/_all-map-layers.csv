@@ -1,0 +1,57 @@
+key,label,renderers,premium,full,tech,finance,happy,commodity,energy
+iranAttacks,Iran Attacks,flat+globe,locked,ON,,,,,
+hotspots,"Intel Hotspots",flat+globe,,ON,,,,,
+conflicts,Conflict Zones,flat+globe,,ON,,,,,
+bases,"Military Bases",flat+globe,,ON,,,,,
+nuclear,"Nuclear Sites",flat+globe,,ON,,,,,
+irradiators,"Gamma Irradiators",flat+globe,,avail,,,,,
+radiationWatch,"Radiation Watch",flat+globe,,avail,,,,,
+spaceports,"Spaceports",flat+globe,,avail,,,,,
+satellites,"Orbital Surveillance",flat+globe,,avail,,,,,
+cables,"Undersea Cables",flat+globe,,avail,ON,ON,,,
+pipelines,"Pipelines",flat+globe,,avail,,ON,,ON,ON
+datacenters,"AI Data Centers",flat+globe,,avail,ON,,,,
+military,"Military Activity",flat+globe,,avail,,,,,
+ais,"Ship Traffic",flat+globe,,avail,,,,ON,ON
+tradeRoutes,"Trade Routes",flat+globe,,avail,,ON,,ON,ON
+flights,"Aviation",flat+globe,,avail,,,,,
+protests,"Protests",flat+globe,,avail,,,,,
+ucdpEvents,"Armed Conflict Events",flat+globe,,avail,,,,,
+displacement,"Displacement Flows",flat+globe,,avail,,,,,
+climate,"Climate Anomalies",flat+globe,,avail,,,,ON,ON
+weather,"US Weather Alerts (NWS)",flat+globe,,ON,,ON,,ON,ON
+outages,"Internet Disruptions",flat+globe,,ON,ON,ON,,ON,ON
+cyberThreats,"Cyber Threats",flat+globe,,avail,avail,avail,,,
+natural,"Natural Events",flat+globe,,avail,ON,ON,,ON,ON
+fires,"Fires",flat+globe,,avail,avail,,,ON,ON
+waterways,"Chokepoints",flat+globe,,ON,,ON,,ON,ON
+economic,"Economic Centers",flat+globe,,avail,,ON,,ON,
+minerals,"Critical Minerals",flat+globe,,avail,,,,ON,ON
+gpsJamming,"GPS Jamming",flat+globe,locked,avail,,,,,
+ciiChoropleth,"CII Instability",flat,enhanced,avail,,,,,
+resilienceScore,"Resilience",flat*,locked,avail,avail,avail,avail,avail,avail
+dayNight,"Day/Night",flat,,avail,avail,avail,,avail,avail
+sanctions,"Sanctions",flat,,ON,,ON,,ON,ON
+startupHubs,"Startup Hubs",flat+globe,,,ON,,,,
+techHQs,"Tech HQs",flat+globe,,,ON,,,,
+accelerators,"Accelerators",flat+globe,,,avail,,,,
+cloudRegions,"Cloud Regions",flat+globe,,,ON,,,,
+techEvents,"Tech Events",flat+globe,,,ON,,,,
+stockExchanges,"Stock Exchanges",flat+globe,,,,ON,,,
+financialCenters,"Financial Centers",flat+globe,,,,ON,,,
+centralBanks,"Central Banks",flat+globe,,,,ON,,,
+commodityHubs,"Commodity Hubs",flat+globe,,,,avail,,ON,ON
+gulfInvestments,"GCC Investments",flat+globe,,,,avail,,,
+positiveEvents,"Positive Events",flat+globe,,,,,ON,,
+kindness,"Acts of Kindness",flat+globe,,,,,ON,,
+happiness,"World Happiness",flat+globe,,,,,ON,,
+speciesRecovery,"Species Recovery",flat+globe,,,,,ON,,
+renewableInstallations,"Clean Energy",flat+globe,,,,,ON,,
+miningSites,"Mining Sites",flat+globe,,,,,,ON,
+processingPlants,"Processing Plants",flat+globe,,,,,,ON,
+commodityPorts,"Commodity Ports",flat+globe,,,,,,ON,ON
+webcams,"Live Webcams",flat+globe,,avail,,,,,
+diseaseOutbreaks,"Disease Outbreaks",flat*,,avail,,,,,
+storageFacilities,"Storage Facilities",flat*,,avail,,,,,avail
+fuelShortages,"Fuel Shortages",flat*,,avail,,,,,avail
+liveTankers,"Live Tanker Positions",flat*,,,,,,,avail

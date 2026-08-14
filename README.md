@@ -45,8 +45,10 @@ Environmental liability
 Specialty casualty
 
 Map layers:
+[map layers](src/config/mosaic/_all-map-layers.csv)
 
 Panels we have:
+[panels](src/config/mosaic/_all-panels.csv)
 
 ## mapping strategy
 
