@@ -47,6 +47,7 @@ http {
     }
 
     location / {
+      include /etc/nginx/mosaic-allowlist.conf;
       include /etc/nginx/security_headers.conf;
       try_files $uri $uri/ /dashboard.html;
       add_header Cache-Control "no-cache, no-store, must-revalidate";

@@ -43,6 +43,7 @@ ENV API_UPSTREAM=https://api.worldmonitor.app
 # Copy built assets, nginx template (API_UPSTREAM substituted at startup), and entrypoint.
 COPY --from=builder /app/dist/ ./
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY docker/nginx-mosaic-allowlist.conf /etc/nginx/mosaic-allowlist.conf
 COPY docker/nginx-security-headers.conf /etc/nginx/security_headers.conf
 COPY docker/nginx-embed-security-headers.conf /etc/nginx/embed_security_headers.conf
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
