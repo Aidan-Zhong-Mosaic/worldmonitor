@@ -66,6 +66,11 @@ Not relevant (hidden by default)
 
 will be in the csv
 
+## Additional features
+### new customed page
+
+### 
+
 # implementation
 
 Replace the different variants of the original code into the 8 LOBs we have; apply the mapping strategy. 
