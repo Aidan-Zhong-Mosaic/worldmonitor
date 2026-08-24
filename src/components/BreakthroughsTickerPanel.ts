@@ -17,7 +17,7 @@ export class BreakthroughsTickerPanel extends Panel {
   private tickerTrack: HTMLElement | null = null;
 
   constructor() {
-    super({ id: 'breakthroughs', title: 'Breakthroughs', trackActivity: false });
+    super({ id: 'breakthroughs', title: 'Science Breakthroughs', trackActivity: false });
     this.createTickerDOM();
   }
 
