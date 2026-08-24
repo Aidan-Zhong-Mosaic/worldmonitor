@@ -52,7 +52,7 @@ const STORAGE_KEY_MAP: Record<keyof AiFlowSettings, string> = {
 };
 
 const DEFAULTS: AiFlowSettings = {
-  browserModel: false,
+  browserModel: true,
   cloudLlm: true,
   mapNewsFlash: true,
   headlineMemory: false,

@@ -1,8 +1,8 @@
-import { Panel } from './Panel';
-import type { NewsItem } from '@/types';
-import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
-import { t } from '@/services/i18n';
-import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
+import {Panel} from './Panel';
+import type {NewsItem} from '@/types';
+import {escapeHtml, sanitizeUrl} from '@/utils/sanitize';
+import {t} from '@/services/i18n';
+import {setTrustedHtml, trustedHtml} from '@/utils/dom-utils';
 
 
 /**
@@ -14,66 +14,79 @@ import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
  * pause are handled by CSS (:hover rule and .animations-paused body class).
  */
 export class BreakthroughsTickerPanel extends Panel {
-  private tickerTrack: HTMLElement | null = null;
+    private tickerTrack: HTMLElement | null = null;
 
-  constructor() {
-    super({ id: 'breakthroughs', title: 'Science Breakthroughs', trackActivity: false });
-    this.createTickerDOM();
-  }
-
-  /**
-   * Create the ticker wrapper and track elements.
-   */
-  private createTickerDOM(): void {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'breakthroughs-ticker-wrapper';
-
-    const track = document.createElement('div');
-    track.className = 'breakthroughs-ticker-track';
-
-    wrapper.appendChild(track);
-    this.tickerTrack = track;
-
-    // Clear loading state and append the ticker
-    setTrustedHtml(this.content, trustedHtml('', "legacy direct innerHTML migration"));
-    this.content.appendChild(wrapper);
-  }
-
-  /**
-   * Receive science news items and populate the ticker track.
-   * Content is doubled for seamless infinite CSS scroll animation.
-   */
-  public setItems(items: NewsItem[]): void {
-    if (!this.tickerTrack) return;
-
-    if (items.length === 0) {
-      setTrustedHtml(this.tickerTrack, trustedHtml(`<span class="ticker-item ticker-placeholder">${t('components.breakthroughsTicker.noData')}</span>`, "legacy direct innerHTML migration"));
-      return;
+    constructor() {
+        super({id: 'breakthroughs', title: 'Science Breakthroughs', trackActivity: false});
+        this.createTickerDOM();
     }
 
-    // Build HTML for one set of items
-    const itemsHtml = items
-      .map(
-        (item) =>
-          `<a class="ticker-item" href="${sanitizeUrl(item.link)}" target="_blank" rel="noopener">` +
-          `<span class="ticker-item-source">${escapeHtml(item.source)}</span>` +
-          `<span class="ticker-item-title">${escapeHtml(item.title)}</span>` +
-          `</a>`,
-      )
-      .join('');
+    /**
+     * Create the ticker wrapper and track elements.
+     */
+    private createTickerDOM(): void {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'breakthroughs-ticker-wrapper';
 
-    // Double the content for seamless infinite scroll
-    setTrustedHtml(this.tickerTrack, trustedHtml(itemsHtml + itemsHtml, "legacy direct innerHTML migration"));
-  }
+        const track = document.createElement('div');
+        track.className = 'breakthroughs-ticker-track';
 
-  /**
-   * Clean up animation and call parent destroy.
-   */
-  public destroy(): void {
-    if (this.tickerTrack) {
-      this.tickerTrack.style.animationPlayState = 'paused';
-      this.tickerTrack = null;
+        wrapper.appendChild(track);
+        this.tickerTrack = track;
+
+        // Clear loading state and append the ticker
+        setTrustedHtml(this.content, trustedHtml('', "legacy direct innerHTML migration"));
+        this.content.appendChild(wrapper);
     }
-    super.destroy();
-  }
+
+    /**
+     * Receive science news items and populate the ticker track.
+     * Content is doubled for seamless infinite CSS scroll animation.
+     */
+    public setItems(items: NewsItem[]): void {
+        if (!this.tickerTrack) return;
+
+        if (items.length === 0) {
+            setTrustedHtml(this.tickerTrack, trustedHtml(`<span class="ticker-item ticker-placeholder">${t('components.breakthroughsTicker.noData')}</span>`, "legacy direct innerHTML migration"));
+            return;
+        }
+
+        // Build HTML for one set of items
+        const itemsHtml = `
+          <ul>
+            ${items
+            .map(
+                (item) => `
+                  <li>
+                    <a
+                      class="ticker-item"
+                      href="${sanitizeUrl(item.link)}"
+                      target="_blank"
+                      rel="noopener ${escapeHtml(item.source)}
+                      </span>
+                      <span class="ticker-item-title">
+                        ${escapeHtml(item.title)}
+                      </span>
+                    </a>
+                  </li>
+                `,
+            )
+            .join('')}
+          </ul>
+        `;
+
+        // Double the content for seamless infinite scroll
+        setTrustedHtml(this.tickerTrack, trustedHtml(itemsHtml + itemsHtml, "legacy direct innerHTML migration"));
+    }
+
+    /**
+     * Clean up animation and call parent destroy.
+     */
+    public destroy(): void {
+        if (this.tickerTrack) {
+            this.tickerTrack.style.animationPlayState = 'paused';
+            this.tickerTrack = null;
+        }
+        super.destroy();
+    }
 }

@@ -333,8 +333,8 @@ export class InsightsPanel extends Panel {
   }
 
   private async updateFromClient(clusters: ClusteredEvent[], thisGeneration: number): Promise<void> {
-    // Web-only: if no AI providers enabled, show disabled state
-    if (!isDesktopRuntime() && !isAnyAiProviderEnabled()) {
+    // if no AI providers enabled, show disabled state
+    if (!isAnyAiProviderEnabled()) {
       this.setDataBadge('unavailable');
       this.renderDisabledState();
       return;
