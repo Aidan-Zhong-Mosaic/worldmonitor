@@ -30,8 +30,8 @@ export interface LobSelection<T extends string = string> {
 
 export const LOB_PANELS: Record<LobId, LobSelection> = {
   'political-violence': {
-    on: ['map', 'live-news', 'insights', 'pipeline-status', 'monitors', 'threat-timeline', 'strategic-posture', 'forecast', 'cii', 'strategic-risk', 'intel', 'gdelt-intel', 'cascade', 'military-correlation', 'escalation-correlation', 'politics', 'middleeast', 'ucdp-events', 'social-velocity', 'thermal-escalation', 'oref-sirens', 'telegram-intel', 'regional-intelligence'],
-    avail: ['energy', 'supply-chain', 'china-corridors', 'sanctions-pressure', 'airline-intel', 'polymarket', 'world-clock', 'latest-brief', 'energy-risk-overview', 'chokepoint-strip', 'storage-facility-map', 'fuel-shortages', 'energy-disruptions', 'hormuz-tracker', 'energy-crisis', 'live-webcams', 'economic-correlation', 'us', 'europe', 'africa', 'latam', 'asia', 'thinktanks', 'chat-analyst', 'displacement', 'population-exposure', 'cross-source-signals', 'deduction', 'geo-hubs'],
+    on: ['positive-feed', 'progress'],
+    avail: [],
   },
   'cyber': {
     on: ['map', 'live-news', 'insights', 'monitors', 'security', 'cloud', 'internet-disruptions', 'service-status', 'cascade', 'security-advisories'],

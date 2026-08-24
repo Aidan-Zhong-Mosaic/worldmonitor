@@ -23,6 +23,7 @@ import {
   isPanelInVariantDefaults,
 } from '@/config';
 import { resolveNewsCategories, enabledNewsCategoryKeys, type ResolvedCategory } from '@/config/feed-resolution';
+import { isLobId } from '@/config/mosaic/lobs';
 import {
   countRepresentedSources,
   mergeRotatedNewsItems,
@@ -721,6 +722,11 @@ export class DataLoaderManager implements AppModule {
     // Desktop: server digest has fewer categories than client FEEDS config.
     // Enable per-feed RSS fallback so missing categories fetch directly.
     if (isDesktopRuntime()) return true;
+    // LOB variants: the server digest is built per public variant and won't
+    // cover cross-variant categories injected by lobPresetFeeds (e.g. the five
+    // happy-source categories behind positive-feed). Without the fallback those
+    // categories silently return empty, starving the positive news pipeline.
+    if (isLobId(SITE_VARIANT)) return true;
     return isFeatureEnabled('newsPerFeedFallback');
   }
 
