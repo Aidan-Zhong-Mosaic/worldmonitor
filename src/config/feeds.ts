@@ -2,6 +2,8 @@ import type { Feed } from '@/types';
 import { SITE_VARIANT } from './variant';
 import { rssProxyUrl } from '@/utils';
 import { mergeCanonicalFeeds } from './feed-resolution';
+// Safe: mosaic/lobs.ts imports only types + generated.ts, so no cycle back here.
+import { isLobId, getLobPanelKeys, type LobId } from './mosaic/lobs';
 import {
   getSourceProvenanceState,
   type SourceProvenanceState,
@@ -983,18 +985,53 @@ const ENERGY_FEEDS: Record<string, Feed[]> = {
   ],
 };
 
-// Variant-aware exports
-export const FEEDS = SITE_VARIANT === 'tech'
-  ? TECH_FEEDS
-  : SITE_VARIANT === 'finance'
-    ? FINANCE_FEEDS
-    : SITE_VARIANT === 'happy'
-      ? HAPPY_FEEDS
-      : SITE_VARIANT === 'commodity'
-        ? COMMODITY_FEEDS
-        : SITE_VARIANT === 'energy'
-          ? ENERGY_FEEDS
-          : FULL_FEEDS;
+const PUBLIC_VARIANT_FEEDS: Record<string, Record<string, Feed[]>> = {
+  tech: TECH_FEEDS,
+  finance: FINANCE_FEEDS,
+  happy: HAPPY_FEEDS,
+  commodity: COMMODITY_FEEDS,
+  energy: ENERGY_FEEDS,
+  full: FULL_FEEDS,
+};
+
+/**
+ * The active preset's category→feeds map.
+ *
+ * Public variants keep their hand-authored preset. A LOB has no preset of its
+ * own: its membership lives in src/config/mosaic/lob2panels.csv, so the preset
+ * is DERIVED from the panel keys that LOB offers, resolved against the union of
+ * every variant's feeds. Without this a LOB fell through to FULL_FEEDS, which
+ * both loaded full-variant categories the LOB never offers and — worse — never
+ * loaded categories that only exist in another variant's preset (the happy
+ * categories behind `positive-feed`, the tech categories behind `dev`, etc.),
+ * so those panels rendered empty no matter what the CSV said.
+ */
+function lobPresetFeeds(lob: string): Record<string, Feed[]> {
+  const canonical = mergeCanonicalFeeds([
+    FULL_FEEDS, TECH_FEEDS, FINANCE_FEEDS, COMMODITY_FEEDS, ENERGY_FEEDS, HAPPY_FEEDS,
+  ]);
+  const preset: Record<string, Feed[]> = {};
+  for (const key of getLobPanelKeys(lob as LobId)) {
+    const feeds = canonical[key];
+    if (Array.isArray(feeds) && feeds.length > 0) preset[key] = feeds;
+  }
+  // Panels that consume news items without being a news category themselves
+  // (the happy pipeline reads `happyAllItems`, accumulated from these five).
+  const HAPPY_SOURCE_CATEGORIES = ['positive', 'science', 'nature', 'inspiring', 'community'];
+  const HAPPY_CONSUMER_PANELS = ['positive-feed', 'spotlight', 'digest', 'breakthroughs', 'species'];
+  const offered = new Set(getLobPanelKeys(lob as LobId));
+  if (HAPPY_CONSUMER_PANELS.some((k) => offered.has(k))) {
+    for (const key of HAPPY_SOURCE_CATEGORIES) {
+      const feeds = canonical[key] ?? HAPPY_FEEDS[key];
+      if (Array.isArray(feeds) && feeds.length > 0) preset[key] = feeds;
+    }
+  }
+  return preset;
+}
+
+export const FEEDS: Record<string, Feed[]> = isLobId(SITE_VARIANT)
+  ? lobPresetFeeds(SITE_VARIANT)
+  : (PUBLIC_VARIANT_FEEDS[SITE_VARIANT] ?? FULL_FEEDS);
 
 // Canonical category→feeds map: the union of every variant's feed set.
 // `FEEDS` (above) is just the active variant's PRESET; users freely customize

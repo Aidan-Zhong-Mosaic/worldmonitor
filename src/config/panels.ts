@@ -1248,10 +1248,40 @@ export function getInitialPanelSettingsForVariant(variant: string): Record<strin
  * otherwise variants whose backend doesn't seed the panel's bootstrap key
  * (e.g. tech-readiness on commodity/finance/energy) blow their 5s fetch
  * budget on a key that will never populate.
+ *
+ * LOB mode: LOBs gate panel membership through the CSV-derived
+ * LOB_PANEL_CONFIGS, and the LOB header lets the user switch lines freely.
+ * Unlike the six public variants — each with its own backend bootstrap
+ * contract — every LOB shares the same full backend, so a panel not listed
+ * in a LOB's CSV column is simply uncurated for that line, not unsupported.
+ * Return true for any panel in ALL_PANELS so that:
+ *   - panels marked ON or avail in the LOB CSV load data as expected, and
+ *   - panels the user cross-enables also load data instead of sitting empty.
+ * The public-variant guard stays in place for the six web variants where
+ * the backend contract matters.
  */
 const SITE_VARIANT_DEFAULTS = new Set(VARIANT_DEFAULTS[SITE_VARIANT] ?? []);
 
+/**
+ * Whether `key` belongs to the current variant's curated panel catalog.
+ * Used for default-enabled state: a panel not in the catalog starts disabled.
+ */
+export function isPanelInVariantPanelSet(key: string): boolean {
+  return SITE_VARIANT_DEFAULTS.has(key);
+}
+
+/**
+ * Whether data should be loaded for `key` in the current variant.
+ *
+ * In LOB mode every LOB shares the same full backend, so any panel the
+ * build knows about can load data — the CSV only curates which panels a
+ * LOB *offers by default*, it does not reflect a backend limitation.
+ * For the six public web variants the original guard stays: those variants
+ * have per-variant bootstrap contracts and fetching data for an absent
+ * key wastes the 5 s budget.
+ */
 export function isPanelInVariantDefaults(key: string): boolean {
+  if (LOB_ID_SET.has(SITE_VARIANT)) return key in ALL_PANELS;
   return SITE_VARIANT_DEFAULTS.has(key);
 }
 

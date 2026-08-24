@@ -61,6 +61,7 @@ export {
   getEffectivePanelConfig,
   getInitialPanelSettingsForVariant,
   isPanelInVariantDefaults,
+  isPanelInVariantPanelSet,
   isPanelEntitled,
   enforceFreePanelLimit,
   countFreePanelCapUsage,

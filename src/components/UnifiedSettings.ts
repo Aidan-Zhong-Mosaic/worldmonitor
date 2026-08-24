@@ -13,6 +13,7 @@ import {
   countFreePanelCapUsage,
   isFreePanelCapCounted,
   isPanelInVariantDefaults,
+  isPanelInVariantPanelSet,
 } from '@/config/panels';
 import { isProUser } from '@/services/widget-store';
 import { SITE_VARIANT } from '@/config/variant';
@@ -1169,7 +1170,7 @@ export class UnifiedSettings {
     );
     for (const key of Object.keys(ALL_PANELS)) {
       if (!(key in cloned)) {
-        cloned[key] = { ...getEffectivePanelConfig(key, SITE_VARIANT), enabled: isPanelInVariantDefaults(key) };
+        cloned[key] = { ...getEffectivePanelConfig(key, SITE_VARIANT), enabled: isPanelInVariantPanelSet(key) };
       }
     }
     return cloned;
@@ -1183,7 +1184,7 @@ export class UnifiedSettings {
   private getSavedPanelEnabled(key: string, savedSettings: Record<string, PanelConfig>): boolean {
     const savedPanel = savedSettings[key];
     if (savedPanel) return savedPanel.enabled;
-    return Boolean(ALL_PANELS[key]) && isPanelInVariantDefaults(key);
+    return Boolean(ALL_PANELS[key]) && isPanelInVariantPanelSet(key);
   }
 
   private getSavedPanelFontScale(

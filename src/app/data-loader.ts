@@ -852,72 +852,76 @@ export class DataLoaderManager implements AppModule {
       tasks.push({ name: 'news', task: () => runGuarded('news', () => this.loadNews()) });
     }
 
-    // Happy variant only loads news data -- skip all geopolitical/financial/military data
-    if (SITE_VARIANT !== 'happy') {
-      if (shouldLoadAny(['markets', 'heatmap', 'commodities', 'crypto', 'energy-complex', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens'])) {
-        tasks.push({ name: 'markets', task: () => runGuarded('markets', () => this.loadMarkets()) });
-      }
-      if (hasPremiumAccess() && shouldLoad('stock-analysis')) {
-        tasks.push({ name: 'stockAnalysis', task: () => runGuarded('stockAnalysis', () => this.loadStockAnalysis()) });
-      }
-      if (hasPremiumAccess() && shouldLoad('stock-backtest')) {
-        tasks.push({ name: 'stockBacktest', task: () => runGuarded('stockBacktest', () => this.loadStockBacktest()) });
-      }
-      if (hasPremiumAccess() && shouldLoad('daily-market-brief')) {
-        tasks.push({ name: 'dailyMarketBrief', task: () => runGuarded('dailyMarketBrief', () => this.loadDailyMarketBrief()) });
-      }
-      if (shouldLoad('polymarket')) {
-        tasks.push({ name: 'predictions', task: () => runGuarded('predictions', () => this.loadPredictions()) });
-      }
-      if (shouldLoad('forecast')) {
-        tasks.push({ name: 'forecasts', task: () => runGuarded('forecasts', () => this.loadForecasts()) });
-        tasks.push({ name: 'simulation-outcome', task: () => runGuarded('simulation-outcome', () => this.loadSimulationOutcome()) });
-      }
-      if (SITE_VARIANT === 'full') tasks.push({ name: 'pizzint', task: () => runGuarded('pizzint', () => this.loadPizzInt()) });
-      if (shouldLoad('economic')) {
-        tasks.push({ name: 'fred', task: () => runGuarded('fred', () => this.loadFredData()) });
-        tasks.push({ name: 'spending', task: () => runGuarded('spending', () => this.loadGovernmentSpending()) });
-        tasks.push({ name: 'bis', task: () => runGuarded('bis', () => this.loadBisData()) });
-        tasks.push({ name: 'bls', task: () => runGuarded('bls', () => this.loadBlsData()) });
-      }
-      if (hasPremiumAccess() && shouldLoad('global-procurement')) {
-        tasks.push({ name: 'global-tenders', task: () => runGuarded('global-tenders', () => this.loadGlobalTenders()) });
-      }
-      if (shouldLoad('energy-complex')) {
-        tasks.push({ name: 'oil', task: () => runGuarded('oil', () => this.loadOilAnalytics()) });
-      }
-
-      // Trade policy + supply-chain data (FULL, FINANCE, COMMODITY, ENERGY variants use supply-chain surface)
-      if (SITE_VARIANT === 'full' || SITE_VARIANT === 'finance' || SITE_VARIANT === 'commodity' || SITE_VARIANT === 'energy') {
-        if (shouldLoad('trade-policy')) {
-          tasks.push({ name: 'tradePolicy', task: () => runGuarded('tradePolicy', () => this.loadTradePolicy()) });
-        }
-        if (shouldLoad('supply-chain')) {
-          tasks.push({ name: 'supplyChain', task: () => runGuarded('supplyChain', () => this.loadSupplyChain()) });
-        }
-        if (shouldLoad('china-corridors')) {
-          tasks.push({ name: 'chinaCorridors', task: () => runGuarded('chinaCorridors', () => this.loadChinaCorridors({ skipIfPopulated: true })) });
-        }
-        if (shouldLoad('china-activity-nowcast')) {
-          tasks.push({ name: 'chinaActivityNowcast', task: () => runGuarded('chinaActivityNowcast', () => this.loadChinaActivityNowcast({ skipIfPopulated: true })) });
-        }
-      }
+    // Every task below is gated on whether its own panel/layer is offered on the
+    // active line, so there is no variant wrapper: a LOB that offers `markets`
+    // loads markets, one that does not, does not. (Previously these sat inside
+    // `SITE_VARIANT !== 'happy'` / `=== 'full'` wrappers, which silently starved
+    // every LOB of any data the full variant happened not to own.)
+    if (shouldLoadAny(['markets', 'heatmap', 'commodities', 'crypto', 'energy-complex', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens'])) {
+      tasks.push({ name: 'markets', task: () => runGuarded('markets', () => this.loadMarkets()) });
+    }
+    if (hasPremiumAccess() && shouldLoad('stock-analysis')) {
+      tasks.push({ name: 'stockAnalysis', task: () => runGuarded('stockAnalysis', () => this.loadStockAnalysis()) });
+    }
+    if (hasPremiumAccess() && shouldLoad('stock-backtest')) {
+      tasks.push({ name: 'stockBacktest', task: () => runGuarded('stockBacktest', () => this.loadStockBacktest()) });
+    }
+    if (hasPremiumAccess() && shouldLoad('daily-market-brief')) {
+      tasks.push({ name: 'dailyMarketBrief', task: () => runGuarded('dailyMarketBrief', () => this.loadDailyMarketBrief()) });
+    }
+    if (shouldLoad('polymarket')) {
+      tasks.push({ name: 'predictions', task: () => runGuarded('predictions', () => this.loadPredictions()) });
+    }
+    if (shouldLoad('forecast')) {
+      tasks.push({ name: 'forecasts', task: () => runGuarded('forecasts', () => this.loadForecasts()) });
+      tasks.push({ name: 'simulation-outcome', task: () => runGuarded('simulation-outcome', () => this.loadSimulationOutcome()) });
+    }
+    // PizzINT backfills the military-bases layer, so it follows that layer.
+    if (this.ctx.mapLayers.bases) {
+      tasks.push({ name: 'pizzint', task: () => runGuarded('pizzint', () => this.loadPizzInt()) });
+    }
+    if (shouldLoad('economic')) {
+      tasks.push({ name: 'fred', task: () => runGuarded('fred', () => this.loadFredData()) });
+      tasks.push({ name: 'spending', task: () => runGuarded('spending', () => this.loadGovernmentSpending()) });
+      tasks.push({ name: 'bis', task: () => runGuarded('bis', () => this.loadBisData()) });
+      tasks.push({ name: 'bls', task: () => runGuarded('bls', () => this.loadBlsData()) });
+    }
+    if (hasPremiumAccess() && shouldLoad('global-procurement')) {
+      tasks.push({ name: 'global-tenders', task: () => runGuarded('global-tenders', () => this.loadGlobalTenders()) });
+    }
+    if (shouldLoad('energy-complex')) {
+      tasks.push({ name: 'oil', task: () => runGuarded('oil', () => this.loadOilAnalytics()) });
     }
 
-    // Progress charts data (happy variant only)
-    if (SITE_VARIANT === 'happy') {
-      if (shouldLoad('progress')) {
-        tasks.push({
-          name: 'progress',
-          task: () => runGuarded('progress', () => this.loadProgressData()),
-        });
-      }
-      if (shouldLoad('species')) {
-        tasks.push({
-          name: 'species',
-          task: () => runGuarded('species', () => this.loadSpeciesData()),
-        });
-      }
+    if (shouldLoad('trade-policy')) {
+      tasks.push({ name: 'tradePolicy', task: () => runGuarded('tradePolicy', () => this.loadTradePolicy()) });
+    }
+    if (shouldLoad('supply-chain')) {
+      tasks.push({ name: 'supplyChain', task: () => runGuarded('supplyChain', () => this.loadSupplyChain()) });
+    }
+    if (shouldLoad('china-corridors')) {
+      tasks.push({ name: 'chinaCorridors', task: () => runGuarded('chinaCorridors', () => this.loadChinaCorridors({ skipIfPopulated: true })) });
+    }
+    if (shouldLoad('china-activity-nowcast')) {
+      tasks.push({ name: 'chinaActivityNowcast', task: () => runGuarded('chinaActivityNowcast', () => this.loadChinaActivityNowcast({ skipIfPopulated: true })) });
+    }
+
+    if (shouldLoad('progress')) {
+      tasks.push({
+        name: 'progress',
+        task: () => runGuarded('progress', () => this.loadProgressData()),
+      });
+    }
+    if (shouldLoad('species')) {
+      tasks.push({
+        name: 'species',
+        task: () => runGuarded('species', () => this.loadSpeciesData()),
+      });
+    }
+    // Both were unconditional inside the old happy-only wrapper; now that the
+    // wrapper is gone they follow their own map layers so a LOB that does not
+    // offer them does not pay for the fetch.
+    if (this.ctx.mapLayers.happiness) {
       tasks.push({
         name: 'happinessMap',
         task: () => runGuarded('happinessMap', async () => {
@@ -925,6 +929,8 @@ export class DataLoaderManager implements AppModule {
           this.ctx.map?.setHappinessScores(data);
         }),
       });
+    }
+    if (this.ctx.mapLayers.renewableInstallations) {
       tasks.push({
         name: 'renewableMap',
         task: () => runGuarded('renewableMap', async () => {
@@ -963,7 +969,7 @@ export class DataLoaderManager implements AppModule {
       });
     }
 
-    if (SITE_VARIANT === 'full') {
+    if (shouldLoadAny(['cii', 'strategic-risk', 'latest-brief'])) {
       try {
         const cached = await fetchCachedRiskScores().catch(() => null);
         if (cached && cached.cii.length > 0) {
@@ -976,7 +982,7 @@ export class DataLoaderManager implements AppModule {
       tasks.push({ name: 'intelligence', task: () => runGuarded('intelligence', () => this.loadIntelligenceSignals()) });
     }
 
-    if (SITE_VARIANT === 'full' && (shouldLoad('satellite-fires') || this.ctx.mapLayers.natural)) {
+    if (shouldLoad('satellite-fires') || this.ctx.mapLayers.natural) {
       tasks.push({ name: 'firms', task: () => runGuarded('firms', () => this.loadFirmsData()) });
     }
     if (this.ctx.mapLayers.natural) tasks.push({ name: 'natural', task: () => runGuarded('natural', () => this.loadNatural()) });
@@ -984,17 +990,17 @@ export class DataLoaderManager implements AppModule {
     if (shouldLoad('social-velocity')) tasks.push({ name: 'socialVelocity', task: () => runGuarded('socialVelocity', () => this.loadSocialVelocity()) });
     if (hasPremiumAccess() && shouldLoad('wsb-ticker-scanner')) tasks.push({ name: 'wsbTickers', task: () => runGuarded('wsbTickers', () => this.loadWsbTickers()) });
     if (shouldLoad('economic')) tasks.push({ name: 'economicStress', task: () => runGuarded('economicStress', () => this.loadEconomicStress()) });
-    if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.weather) tasks.push({ name: 'weather', task: () => runGuarded('weather', () => this.loadWeatherAlerts()) });
-    if (SITE_VARIANT !== 'happy' && !isDesktopRuntime() && this.ctx.mapLayers.ais) tasks.push({ name: 'ais', task: () => runGuarded('ais', () => this.loadAisSignals()) });
-    if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.cables) tasks.push({ name: 'cables', task: () => runGuarded('cables', () => this.loadCableActivity()) });
-    if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.cables) tasks.push({ name: 'cableHealth', task: () => runGuarded('cableHealth', () => this.loadCableHealth()) });
-    if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.flights) tasks.push({ name: 'flights', task: () => runGuarded('flights', () => this.loadFlightDelays()) });
-    if (SITE_VARIANT !== 'happy' && CYBER_LAYER_ENABLED && this.ctx.mapLayers.cyberThreats) tasks.push({ name: 'cyberThreats', task: () => runGuarded('cyberThreats', () => this.loadCyberThreats()) });
-    if (IRAN_ATTACKS_ENABLED && SITE_VARIANT !== 'happy' && !isDesktopRuntime() && (this.ctx.mapLayers.iranAttacks || shouldLoadAny(['cii', 'strategic-risk', 'strategic-posture']))) tasks.push({ name: 'iranAttacks', task: () => runGuarded('iranAttacks', () => this.loadIranEvents()) });
-    if (SITE_VARIANT !== 'happy' && (this.ctx.mapLayers.techEvents || SITE_VARIANT === 'tech')) tasks.push({ name: 'techEvents', task: () => runGuarded('techEvents', () => this.loadTechEvents()) });
-    if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.satellites && this.ctx.map?.isGlobeMode?.()) tasks.push({ name: 'satellites', task: () => runGuarded('satellites', () => this.loadSatellites()) });
-    if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.webcams) tasks.push({ name: 'webcams', task: () => runGuarded('webcams', () => this.loadWebcams()) });
-    if (SITE_VARIANT !== 'happy' && (shouldLoad('sanctions-pressure') || this.ctx.mapLayers.sanctions)) {
+    if (this.ctx.mapLayers.weather) tasks.push({ name: 'weather', task: () => runGuarded('weather', () => this.loadWeatherAlerts()) });
+    if (!isDesktopRuntime() && this.ctx.mapLayers.ais) tasks.push({ name: 'ais', task: () => runGuarded('ais', () => this.loadAisSignals()) });
+    if (this.ctx.mapLayers.cables) tasks.push({ name: 'cables', task: () => runGuarded('cables', () => this.loadCableActivity()) });
+    if (this.ctx.mapLayers.cables) tasks.push({ name: 'cableHealth', task: () => runGuarded('cableHealth', () => this.loadCableHealth()) });
+    if (this.ctx.mapLayers.flights) tasks.push({ name: 'flights', task: () => runGuarded('flights', () => this.loadFlightDelays()) });
+    if (CYBER_LAYER_ENABLED && this.ctx.mapLayers.cyberThreats) tasks.push({ name: 'cyberThreats', task: () => runGuarded('cyberThreats', () => this.loadCyberThreats()) });
+    if (IRAN_ATTACKS_ENABLED && !isDesktopRuntime() && (this.ctx.mapLayers.iranAttacks || shouldLoadAny(['cii', 'strategic-risk', 'strategic-posture']))) tasks.push({ name: 'iranAttacks', task: () => runGuarded('iranAttacks', () => this.loadIranEvents()) });
+    if (this.ctx.mapLayers.techEvents) tasks.push({ name: 'techEvents', task: () => runGuarded('techEvents', () => this.loadTechEvents()) });
+    if (this.ctx.mapLayers.satellites && this.ctx.map?.isGlobeMode?.()) tasks.push({ name: 'satellites', task: () => runGuarded('satellites', () => this.loadSatellites()) });
+    if (this.ctx.mapLayers.webcams) tasks.push({ name: 'webcams', task: () => runGuarded('webcams', () => this.loadWebcams()) });
+    if ((shouldLoad('sanctions-pressure') || this.ctx.mapLayers.sanctions)) {
       tasks.push({ name: 'sanctions', task: () => runGuarded('sanctions', () => this.loadSanctionsPressure()) });
     }
     if (this.ctx.mapLayers.resilienceScore) {
@@ -1005,7 +1011,7 @@ export class DataLoaderManager implements AppModule {
         this.ctx.map?.setLayerReady('resilienceScore', false);
       }
     }
-    if (SITE_VARIANT !== 'happy' && (shouldLoad('radiation-watch') || this.ctx.mapLayers.radiationWatch)) {
+    if ((shouldLoad('radiation-watch') || this.ctx.mapLayers.radiationWatch)) {
       tasks.push({ name: 'radiation', task: () => runGuarded('radiation', () => this.loadRadiationWatch()) });
     }
 
@@ -1018,10 +1024,10 @@ export class DataLoaderManager implements AppModule {
     if (isPanelInVariantDefaults('tech-readiness') && shouldLoad('tech-readiness')) {
       tasks.push({ name: 'techReadiness', task: () => runGuarded('techReadiness', () => (this.ctx.panels['tech-readiness'] as TechReadinessPanel)?.refresh()) });
     }
-    if (SITE_VARIANT !== 'happy' && shouldLoad('thermal-escalation')) {
+    if (shouldLoad('thermal-escalation')) {
       tasks.push({ name: 'thermalEscalation', task: () => runGuarded('thermalEscalation', () => this.loadThermalEscalations()) });
     }
-    if (SITE_VARIANT !== 'happy' && shouldLoad('cross-source-signals')) {
+    if (shouldLoad('cross-source-signals')) {
       tasks.push({ name: 'crossSourceSignals', task: () => runGuarded('crossSourceSignals', () => this.loadCrossSourceSignals()) });
     }
 
@@ -1791,10 +1797,11 @@ export class DataLoaderManager implements AppModule {
   }
 
   async loadNews(): Promise<void> {
-    // Reset happy variant accumulator for fresh pipeline run
-    if (SITE_VARIANT === 'happy') {
-      this.ctx.happyAllItems = [];
-    }
+    // Reset the positive-news accumulator for a fresh pipeline run. Always
+    // initialized: the accumulate step below is gated on whether the consuming
+    // panel is offered, not on the variant, so leaving this undefined on a LOB
+    // made that step throw on `.concat()` and silently abort the news load.
+    this.ctx.happyAllItems = [];
 
     // Fire digest fetch early, but do not let a slow digest stall the category
     // first paint. Fast digests still take the optimized digest-backed path.
@@ -1823,7 +1830,7 @@ export class DataLoaderManager implements AppModule {
         allowPendingPerFeedFallback: this.isPerFeedFallbackEnabled(),
         hasDigestCategory: (digest, key) => Boolean(digest.categories && key in digest.categories),
         loadCategory: ({ key, feeds, isCustom }, digest, options) => this.loadNewsCategory(key, feeds, digest, isCustom, options),
-        loadIntel: SITE_VARIANT === 'full'
+        loadIntel: isPanelInVariantDefaults('intel')
           ? (digest, allowDigestPendingFallback, options) => this.loadIntelNews(digest, allowDigestPendingFallback, options)
           : undefined,
         onCategoryError: (key, reason) => {
@@ -1837,10 +1844,11 @@ export class DataLoaderManager implements AppModule {
     const { categoryItemsByKey, intelItems } = newsPass;
 
     const collectedNews: NewsItem[] = [];
+    const shouldProcessHappy = SITE_VARIANT === 'happy' || isPanelInVariantDefaults('positive-feed');
     for (const { key } of categories) {
       const items = categoryItemsByKey.get(key) ?? [];
-      // Tag items with content categories for happy variant
-      if (SITE_VARIANT === 'happy') {
+      // Tag items with content categories for happy variant or LOBs with positive-feed
+      if (shouldProcessHappy) {
         for (const item of items) {
           item.happyCategory = classifyNewsItem(item.source, item.title);
         }
@@ -1850,7 +1858,7 @@ export class DataLoaderManager implements AppModule {
       collectedNews.push(...items);
     }
 
-    if (SITE_VARIANT === 'full') {
+    if (isPanelInVariantDefaults('intel')) {
       collectedNews.push(...intelItems);
     }
 
@@ -1939,8 +1947,9 @@ export class DataLoaderManager implements AppModule {
       }
     }
 
-    // Happy variant: run multi-stage positive news pipeline + map layers
-    if (SITE_VARIANT === 'happy') {
+    // Happy variant or LOB with positive-feed enabled: run multi-stage positive news pipeline + map layers
+    const hasPositiveFeed = isPanelInVariantDefaults('positive-feed');
+    if (SITE_VARIANT === 'happy' || hasPositiveFeed) {
       await this.loadHappySupplementaryAndRender();
       await Promise.allSettled([
         this.ctx.mapLayers.positiveEvents ? this.loadPositiveEvents() : Promise.resolve(),
@@ -2762,9 +2771,7 @@ export class DataLoaderManager implements AppModule {
   }
 
   async loadTechEvents(): Promise<void> {
-    console.log('[loadTechEvents] Called. SITE_VARIANT:', SITE_VARIANT, 'techEvents layer:', this.ctx.mapLayers.techEvents);
-    if (SITE_VARIANT !== 'tech' && !this.ctx.mapLayers.techEvents) {
-      console.log('[loadTechEvents] Skipping - not tech variant and layer disabled');
+    if (!this.ctx.mapLayers.techEvents && !isPanelInVariantDefaults('events')) {
       return;
     }
 
@@ -4233,7 +4240,7 @@ export class DataLoaderManager implements AppModule {
     const species = await fetchConservationWins();
     this.callPanel('species', 'setData', species);
     this.ctx.map?.setSpeciesRecoveryZones(species);
-    if (SITE_VARIANT === 'happy' && species.length > 0) {
+    if (isPanelInVariantDefaults('species') && species.length > 0) {
       checkMilestones({
         speciesRecoveries: species.map(s => ({ name: s.commonName, status: s.recoveryStatus })),
         newSpeciesCount: species.length,
@@ -4245,7 +4252,7 @@ export class DataLoaderManager implements AppModule {
     const { fetchRenewableEnergyData, fetchEnergyCapacity } = await import('@/services/renewable-energy-data');
     const result = await fetchRenewableEnergyData();
     this.callPanel('renewable', 'setData', result);
-    if (SITE_VARIANT === 'happy' && result.state === 'live' && result.data?.globalPercentage) {
+    if (isPanelInVariantDefaults('renewable') && result.state === 'live' && result.data?.globalPercentage) {
       checkMilestones({
         renewablePercent: result.data.globalPercentage,
       });
