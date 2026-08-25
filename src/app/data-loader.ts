@@ -605,6 +605,11 @@ export class DataLoaderManager implements AppModule {
   }
 
   private async tryFetchDigest(): Promise<ListFeedDigestResponse | null> {
+    // LOBs always use per-feed fallback (isPerFeedFallbackEnabled). The server
+    // digest is built per public variant and doesn't know LOB ids, so skip the
+    // request entirely to avoid a wasted round-trip + breaker noise.
+    if (isLobId(SITE_VARIANT)) return null;
+
     const now = Date.now();
     // Capture request and persistence scope together. Sampling the language again
     // after the response would let an old-language request populate the new
@@ -1824,7 +1829,8 @@ export class DataLoaderManager implements AppModule {
     // post-toggle set for a load that used the pre-toggle one.
     const disabledAtLoadStart = new Set(this.ctx.disabledSources);
 
-    const maxCategoryConcurrency = SITE_VARIANT === 'tech' ? 4 : 5;
+    // Tech variant uses 4 concurrent category fetches (smaller feed set); all others use 5.
+    const maxCategoryConcurrency = !isLobId(SITE_VARIANT) && SITE_VARIANT === 'tech' ? 4 : 5;
     const categoryConcurrency = Math.max(1, Math.min(maxCategoryConcurrency, categories.length));
     const newsPass = await runNewsLoadPass(
       {
@@ -1850,7 +1856,7 @@ export class DataLoaderManager implements AppModule {
     const { categoryItemsByKey, intelItems } = newsPass;
 
     const collectedNews: NewsItem[] = [];
-    const shouldProcessHappy = SITE_VARIANT === 'happy' || isPanelInVariantDefaults('positive-feed');
+    const shouldProcessHappy = isPanelInVariantDefaults('positive-feed');
     for (const { key } of categories) {
       const items = categoryItemsByKey.get(key) ?? [];
       // Tag items with content categories for happy variant or LOBs with positive-feed
@@ -1953,9 +1959,8 @@ export class DataLoaderManager implements AppModule {
       }
     }
 
-    // Happy variant or LOB with positive-feed enabled: run multi-stage positive news pipeline + map layers
-    const hasPositiveFeed = isPanelInVariantDefaults('positive-feed');
-    if (SITE_VARIANT === 'happy' || hasPositiveFeed) {
+    // Positive-feed pipeline: run when the positive-feed panel is enabled (happy variant or any LOB with it on)
+    if (isPanelInVariantDefaults('positive-feed')) {
       await this.loadHappySupplementaryAndRender();
       await Promise.allSettled([
         this.ctx.mapLayers.positiveEvents ? this.loadPositiveEvents() : Promise.resolve(),
@@ -2486,9 +2491,9 @@ export class DataLoaderManager implements AppModule {
           sectorContext,
           earningsContext,
           frameworkAppend: getActiveFrameworkForPanel('daily-market-brief')?.systemPromptAppend,
-          newsCategories: SITE_VARIANT === 'commodity'
+          newsCategories: !isLobId(SITE_VARIANT) && SITE_VARIANT === 'commodity'
             ? ['commodity-news', 'gold-silver', 'mining-news', 'energy', 'critical-minerals']
-            : SITE_VARIANT === 'energy'
+            : !isLobId(SITE_VARIANT) && SITE_VARIANT === 'energy'
               ? ['live-news', 'energy', 'supply-chain']
               : undefined,
         }),

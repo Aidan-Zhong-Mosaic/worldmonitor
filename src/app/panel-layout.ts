@@ -32,7 +32,6 @@ import {
   ALL_PANELS,
   VARIANT_DEFAULTS,
   isPanelInVariantDefaults,
-  isPanelInVariantPanelSet,
   getEffectivePanelConfig,
   isPanelEntitled,
   enforceFreePanelLimit,
@@ -1408,7 +1407,7 @@ export class PanelLayoutManager implements AppModule {
         next[key] = { ...config };
       } else {
         const effective = getEffectivePanelConfig(key, SITE_VARIANT);
-        next[key] = { ...effective, enabled: isPanelInVariantPanelSet(key) && effective.enabled };
+        next[key] = { ...effective, enabled: isPanelInVariantDefaults(key) && effective.enabled };
       }
     }
 
@@ -2462,8 +2461,8 @@ export class PanelLayoutManager implements AppModule {
     // Global Giving panel (all variants)
     this.lazyDefaultPanel('giving', () => import('@/components/GivingPanel'), 'GivingPanel');
 
-    // Happy variant or LOB with positive-feed panels (lazy-loaded)
-    if (SITE_VARIANT === 'happy' || isPanelInVariantDefaults('positive-feed')) {
+    // Positive-feed panels: enabled on happy variant or any LOB with positive-feed on
+    if (isPanelInVariantDefaults('positive-feed')) {
       this.lazyImportedPanel('positive-feed', () => import('@/components/PositiveNewsFeedPanel'), 'PositiveNewsFeedPanel', (PositiveNewsFeedPanel) => {
         const p = new PositiveNewsFeedPanel();
         this.ctx.positivePanel = p;
