@@ -12,7 +12,6 @@ import {
   FREE_PANEL_CAP,
   countFreePanelCapUsage,
   isFreePanelCapCounted,
-  isPanelInVariantDefaults,
   isPanelInVariantPanelSet,
 } from '@/config/panels';
 import { isProUser } from '@/services/widget-store';
