@@ -1260,6 +1260,9 @@ export function isPanelInVariantDefaults(key: string): boolean {
   return SITE_VARIANT_DEFAULTS.has(key);
 }
 
+/** Alias — callers migrating to the clearer name. Same logic. */
+export const isPanelInVariantPanelSet = isPanelInVariantDefaults;
+
 export const FREE_MAX_PANELS = 40;
 export const FREE_MAX_SOURCES = 80;
 
