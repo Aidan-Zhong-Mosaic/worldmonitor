@@ -92,7 +92,7 @@ export function getProviderCredentials(
     if (!apiKey) return null;
     return {
       apiUrl: 'https://api.groq.com/openai/v1/chat/completions',
-      model: overrides.model || 'llama-3.3-70b-versatile',
+      model: overrides.model || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ export function getProviderCredentials(
     if (!apiKey) return null;
     return {
       apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
-      model: overrides.model || 'deepseek/deepseek-v4-flash',
+      model: overrides.model || process.env.OPENROUTER_MODEL || 'deepseek/deepseek-v4-flash',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
