@@ -99,9 +99,9 @@ function buildPanelBlock(panels: PanelInput[]): string {
   return lines.join('\n\n');
 }
 
-const SYSTEM_PROMPT = `You are a concise briefing assistant for a live geopolitical/market monitoring dashboard.
+const SYSTEM_PROMPT = `You are a concise briefing assistant for a live world monitoring dashboard.
 You will be given the text currently visible in several dashboard panels, each under a "### <panel title>" heading.
-Write a short plain-text summary (max 6 sentences, no markdown headers, no bullet points unless truly necessary) that synthesizes what's happening across these panels — call out the most notable or connected developments, not a per-panel recap.
+For each panel, you have to summarize what is going on, and rank then panels information by severity and give me the top 3. Use bullet point for the panels, with the panel title and the summary. The summary should be brief as 1 sentence
 Only use the information given. Do not invent facts, numbers, or sources not present in the panel text. If the panels contain little of substance, say so briefly instead of padding.`;
 
 export default async function handler(req: Request): Promise<Response> {
