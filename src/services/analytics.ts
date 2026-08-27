@@ -119,6 +119,8 @@ const EVENTS = {
   'summarize-page-success': true,
   'summarize-page-error': true,
   'summarize-page-drilldown': true,
+  // Exposure Lens (portfolio exposure panel)
+  'exposure-drilldown': true,
   // WM Analyst dashboard control
   'analyst-control-action': true,
   // MCP
