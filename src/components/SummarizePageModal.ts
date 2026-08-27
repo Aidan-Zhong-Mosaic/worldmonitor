@@ -17,6 +17,12 @@ import { toApiUrl } from '@/services/runtime';
 import { escapeHtml } from '@/utils/sanitize';
 import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
 import { collectVisiblePanelSummaries } from '@/utils/panel-summary-collector';
+import { revealPanel } from '@/utils/reveal-panel';
+import {
+  renderSourceList,
+  renderSummaryBody,
+  type SummarySourcePanel,
+} from '@/utils/summary-render';
 import { track } from '@/services/analytics';
 
 const API_PATH = '/api/summarize-page';
@@ -26,7 +32,26 @@ let abortController: AbortController | null = null;
 
 interface SummarizeResponse {
   summary?: string;
+  /** Panels that actually reached the model, echoed back so the summary can
+   *  link each panel it names. */
+  panels?: SummarySourcePanel[];
   error?: string;
+}
+
+interface SummaryResult {
+  summary: string;
+  panels: SummarySourcePanel[];
+}
+
+function readSourcePanels(value: unknown): SummarySourcePanel[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const e = entry as Record<string, unknown>;
+    if (typeof e.id !== 'string' || typeof e.title !== 'string') return [];
+    if (!e.id || !e.title) return [];
+    return [{ id: e.id, title: e.title }];
+  });
 }
 
 function formatGeneratedAt(date: Date): string {
@@ -37,7 +62,7 @@ function formatGeneratedAt(date: Date): string {
   }
 }
 
-async function requestSummary(signal: AbortSignal): Promise<{ ok: true; summary: string } | { ok: false; message: string }> {
+async function requestSummary(signal: AbortSignal): Promise<{ ok: true; result: SummaryResult } | { ok: false; message: string }> {
   const panels = collectVisiblePanelSummaries();
   if (panels.length === 0) {
     return { ok: false, message: t('summarizePage.emptyState') };
@@ -74,7 +99,7 @@ async function requestSummary(signal: AbortSignal): Promise<{ ok: true; summary:
     return { ok: false, message: t('summarizePage.unavailable') };
   }
 
-  return { ok: true, summary: body.summary };
+  return { ok: true, result: { summary: body.summary, panels: readSourcePanels(body.panels) } };
 }
 
 function renderLoading(bodyEl: HTMLElement): void {
@@ -91,11 +116,24 @@ function renderError(bodyEl: HTMLElement, message: string): void {
   ));
 }
 
-function renderSummary(bodyEl: HTMLElement, summary: string): void {
-  const p = document.createElement('p');
-  p.className = 'summarize-page-summary';
-  p.textContent = summary;
-  bodyEl.replaceChildren(p);
+function renderSummary(bodyEl: HTMLElement, result: SummaryResult): void {
+  // Clicking any panel name closes the modal first — the panel is behind it,
+  // and revealPanel() scrolls the dashboard, not the overlay.
+  const handlers = {
+    onPanelClick: (panelId: string) => {
+      closeSummarizePageModal();
+      revealPanel(panelId);
+      track('summarize-page-drilldown', { panelId });
+    },
+  };
+
+  const wrap = document.createElement('div');
+  wrap.className = 'summarize-page-summary';
+  wrap.appendChild(renderSummaryBody(result.summary, result.panels, handlers));
+  if (result.panels.length > 0) {
+    wrap.appendChild(renderSourceList(result.panels, handlers));
+  }
+  bodyEl.replaceChildren(wrap);
 }
 
 async function runSummary(bodyEl: HTMLElement, metaEl: HTMLElement, refreshBtn: HTMLButtonElement): Promise<void> {
@@ -112,7 +150,7 @@ async function runSummary(bodyEl: HTMLElement, metaEl: HTMLElement, refreshBtn: 
     if (controller.signal.aborted) return;
 
     if (result.ok) {
-      renderSummary(bodyEl, result.summary);
+      renderSummary(bodyEl, result.result);
       metaEl.textContent = t('summarizePage.generatedAt', { time: formatGeneratedAt(new Date()) });
       track('summarize-page-success');
     } else {

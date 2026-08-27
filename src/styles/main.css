@@ -10159,8 +10159,92 @@ a.prediction-link:hover {
 }
 
 .summarize-page-summary {
-  white-space: pre-wrap;
   color: var(--text);
+}
+
+.summarize-page-bullets {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summarize-page-bullets li {
+  line-height: 1.55;
+}
+
+.summarize-page-paragraph {
+  margin: 0 0 10px;
+  line-height: 1.6;
+}
+
+.summarize-page-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Panel name inside a bullet / paragraph — reads as a link, jumps to the panel. */
+.summarize-page-panel-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--green);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--green) 45%, transparent);
+}
+
+.summarize-page-panel-link:hover,
+.summarize-page-panel-link:focus-visible {
+  text-decoration-color: var(--green);
+  outline: none;
+}
+
+.summarize-page-panel-link:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 55%, transparent);
+  border-radius: 2px;
+}
+
+/* "Read N panels:" row — what the summary actually looked at. */
+.summarize-page-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.summarize-page-sources-label {
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 2px;
+}
+
+.summarize-page-source-chip {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.summarize-page-source-chip:hover,
+.summarize-page-source-chip:focus-visible {
+  border-color: var(--green);
+  color: var(--green);
+  outline: none;
 }
 
 .summarize-page-footer {

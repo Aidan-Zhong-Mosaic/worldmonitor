@@ -3450,6 +3450,8 @@
     "emptyState": "No panel content to summarize right now \u2014 add or expand a panel and try again.",
     "rateLimited": "You've hit the summary limit for now \u2014 try again in a minute.",
     "unavailable": "Couldn't generate a summary right now. Please try again shortly.",
-    "generatedAt": "Generated {{time}}"
+    "generatedAt": "Generated {{time}}",
+    "goToPanel": "Go to {{panel}}",
+    "sourcesLabel": "Read {{count}} panels:"
   }
 }

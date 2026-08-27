@@ -49,15 +49,23 @@ const RATE_LIMIT_WINDOW = RATE_LIMIT_POLICY.window;
 
 // Caps mirror the client-side collector (src/utils/panel-summary-collector.ts)
 // but are enforced again here — never trust client-side truncation alone.
-const MAX_PANELS = 24;
+const MAX_PANELS = 100;
 const MAX_TITLE_CHARS = 80;
 const MAX_TEXT_CHARS_PER_PANEL = 600;
 const MAX_TOTAL_PROMPT_CHARS = 6_000;
 
 interface PanelInput {
+  /** The panel's `data-panel` id, echoed back in the response so the client
+   *  can turn each bullet's panel title into a link that reveals that panel. */
+  id: string;
   title: string;
   text: string;
 }
+
+/** Provider-reported finish reasons that mean "ran out of output budget".
+ *  Mirrors TOKEN_LIMIT_FINISH_REASONS in server/_shared/llm.ts, which is not
+ *  exported. */
+const LENGTH_FINISH_REASONS = new Set(['length', 'max_tokens', 'max_output_tokens']);
 
 function json(body: unknown, status: number, cors: Record<string, string>): Response {
   return new Response(JSON.stringify(body), {
@@ -75,10 +83,15 @@ function extractPanels(body: unknown): PanelInput[] {
   for (const entry of raw.slice(0, MAX_PANELS)) {
     if (!entry || typeof entry !== 'object') continue;
     const e = entry as Record<string, unknown>;
+    // The id is an internal panel key (e.g. "cii", "chat-analyst"), never
+    // shown to the model — it only round-trips to the client. Constrain it to
+    // the key charset so nothing else can ride along in the response.
+    const rawId = typeof e.id === 'string' ? e.id.slice(0, 64) : '';
+    const id = /^[a-zA-Z0-9_-]+$/.test(rawId) ? rawId : '';
     const title = sanitizeForPromptLine(typeof e.title === 'string' ? e.title.slice(0, MAX_TITLE_CHARS) : '');
     const text = sanitizeForPromptLine(typeof e.text === 'string' ? e.text.slice(0, MAX_TEXT_CHARS_PER_PANEL) : '');
-    if (!title || !text) continue;
-    panels.push({ title, text });
+    if (!id || !title || !text) continue;
+    panels.push({ id, title, text });
   }
   return panels;
 }
@@ -87,16 +100,27 @@ function extractPanels(body: unknown): PanelInput[] {
  *  The "### <title>" delimiters are ours, not caller-controlled — every
  *  panel value that flows in is already line-sanitized so it cannot forge
  *  a fake "### " section of its own. */
-function buildPanelBlock(panels: PanelInput[]): string {
-  const lines: string[] = [];
+function panelSection(p: PanelInput): string {
+  return `### ${p.title}\n${p.text}`;
+}
+
+/** The prefix of `panels` that fits MAX_TOTAL_PROMPT_CHARS — i.e. exactly the
+ *  panels the model is shown. buildPanelBlock and the response's source list
+ *  both derive from this so they can never disagree about what was read. */
+function panelsWithinBudget(panels: PanelInput[]): PanelInput[] {
+  const kept: PanelInput[] = [];
   let total = 0;
   for (const p of panels) {
-    const section = `### ${p.title}\n${p.text}`;
-    if (total + section.length > MAX_TOTAL_PROMPT_CHARS) break;
-    lines.push(section);
-    total += section.length;
+    const len = panelSection(p).length;
+    if (total + len > MAX_TOTAL_PROMPT_CHARS) break;
+    kept.push(p);
+    total += len;
   }
-  return lines.join('\n\n');
+  return kept;
+}
+
+function buildPanelBlock(panels: PanelInput[]): string {
+  return panelsWithinBudget(panels).map(panelSection).join('\n\n');
 }
 
 const SYSTEM_PROMPT = `You are a concise briefing assistant for a live world monitoring dashboard.
@@ -105,6 +129,49 @@ For each panel, you have to summarize what is going on, and rank then panels inf
 The return should be the list of bullet point I asked for, follow up by a general summary.
 Notice that this is written to underwriters of our insurance company, not for a technical person, so you are allowed to use financial language instead of data science language.
 Only use the information given. Do not invent facts, numbers, or sources not present in the panel text. If the panels contain little of substance, say so briefly instead of padding.`;
+
+/**
+ * Drop a trailing half-written line when the model ran out of output budget.
+ *
+ * The prompt asks for ranked bullets followed by a general summary, which is
+ * long enough that a tight maxTokens used to cut mid-sentence and surface a
+ * dangling fragment in the modal. maxTokens is now sized for the full answer,
+ * so this is the backstop for the rare overflow: keep everything up to the
+ * last line that actually terminates, and drop the fragment rather than
+ * rendering it.
+ *
+ * Only trims when the provider reported a length stop — a normally-finished
+ * completion is returned untouched even if it ends without punctuation.
+ */
+const TERMINATED_RE = /[.!?:;)\]]$/;
+
+export function trimIncompleteTail(content: string, finishReason: string | null): string {
+  if (!finishReason || !LENGTH_FINISH_REASONS.has(finishReason)) return content;
+
+  // Drop trailing lines that don't terminate — a cut-off bullet is a whole
+  // line we can discard without touching the ones above it.
+  const lines = content.split('\n');
+  while (lines.length > 1) {
+    const last = (lines[lines.length - 1] ?? '').trim();
+    if (last === '' || !TERMINATED_RE.test(last)) {
+      lines.pop();
+      continue;
+    }
+    break;
+  }
+  let kept = lines.join('\n').trimEnd();
+
+  // What survives can still end mid-sentence — notably when the whole answer
+  // is one unterminated paragraph, where the loop above has nothing to pop.
+  // Cut back to the last sentence end in that case.
+  if (kept && !TERMINATED_RE.test(kept)) {
+    const lastStop = Math.max(kept.lastIndexOf('.'), kept.lastIndexOf('!'), kept.lastIndexOf('?'));
+    kept = lastStop > 0 ? kept.slice(0, lastStop + 1) : '';
+  }
+
+  // No sentence boundary anywhere: showing the fragment beats showing nothing.
+  return kept || content.trimEnd();
+}
 
 export default async function handler(req: Request): Promise<Response> {
   const corsHeaders = getCorsHeaders(req) as Record<string, string>;
@@ -155,8 +222,11 @@ export default async function handler(req: Request): Promise<Response> {
         { role: 'user', content: panelBlock },
       ],
       temperature: 0.3,
-      maxTokens: 350,
-      timeoutMs: 20_000,
+      // Sized for the full answer the prompt asks for: three ranked bullets
+      // plus a general summary. At the old 350 the model regularly hit the
+      // cap and the modal rendered a dangling half sentence.
+      maxTokens: 900,
+      timeoutMs: 25_000,
       stage: 'summarize-page',
       // Explicit even though it's the default: this is a free, high-volume
       // route, so it must never pay for reasoning tokens.
@@ -167,7 +237,18 @@ export default async function handler(req: Request): Promise<Response> {
       return json({ error: 'summary_unavailable' }, 503, corsHeaders);
     }
 
-    return json({ summary: result.content.trim() }, 200, corsHeaders);
+    const summary = trimIncompleteTail(result.content.trim(), result.finishReason).trim();
+    if (!summary) {
+      return json({ error: 'summary_unavailable' }, 503, corsHeaders);
+    }
+
+    // Echo the panels that actually reached the model (buildPanelBlock may drop
+    // the tail when MAX_TOTAL_PROMPT_CHARS is hit, so recompute from the same
+    // budget rather than returning everything the client sent). The client uses
+    // this to show what was summarized and to link each bullet to its panel.
+    const usedPanels = panelsWithinBudget(panels).map((p) => ({ id: p.id, title: p.title }));
+
+    return json({ summary, panels: usedPanels }, 200, corsHeaders);
   } catch (err) {
     captureSilentError(err, { tags: { route: 'api/summarize-page' } });
     return json({ error: 'service_unavailable' }, 503, corsHeaders);

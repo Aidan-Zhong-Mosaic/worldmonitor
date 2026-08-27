@@ -118,6 +118,7 @@ const EVENTS = {
   'summarize-page-open': true,
   'summarize-page-success': true,
   'summarize-page-error': true,
+  'summarize-page-drilldown': true,
   // WM Analyst dashboard control
   'analyst-control-action': true,
   // MCP

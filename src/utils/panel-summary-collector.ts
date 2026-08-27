@@ -14,6 +14,10 @@
  */
 
 export interface CollectedPanel {
+  /** The panel's `data-panel` id (Panel.ts sets it from PanelOptions.id).
+   *  Carried through the API round-trip so the summary can link back to the
+   *  panel it came from — see revealPanel() in @/utils/reveal-panel. */
+  id: string;
   title: string;
   text: string;
 }
@@ -82,11 +86,12 @@ export function collectVisiblePanelSummaries(
     const contentEl = panelEl.querySelector('.panel-content');
     if (!titleEl || !contentEl) continue;
 
+    const id = panelEl.dataset.panel ?? '';
     const title = normalizeWhitespace(titleEl.textContent ?? '').slice(0, MAX_TITLE_CHARS);
     const text = extractPanelBodyText(contentEl).slice(0, MAX_TEXT_CHARS_PER_PANEL);
-    if (!title || !text) continue;
+    if (!id || !title || !text) continue;
 
-    panels.push({ title, text });
+    panels.push({ id, title, text });
   }
 
   return panels;
