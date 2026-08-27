@@ -95,7 +95,13 @@ function getAppearance() {
           dividerLine: { backgroundColor: '#2a2a2a' },
           dividerText: { color: '#666666' },
           formButtonPrimary: { color: '#000000', fontWeight: '600' },
-          footerActionLink: { color: '#44ff88' },
+          // Account creation is disabled app-wide: the dashboard signs in to an
+          // existing account and exposes no sign-up CTA (AuthHeaderWidget /
+          // AuthLauncher). Clerk still renders its own "Don't have an account?
+          // Sign up" row inside the sign-in card, which our button removal cannot
+          // reach — hide the whole footer action row so no register path survives.
+          footerAction: { display: 'none' },
+          footerActionLink: { color: '#44ff88', display: 'none' },
           identityPreviewEditButton: { color: '#44ff88' },
           formFieldLabel: { color: '#cccccc' },
           formFieldInput: { borderColor: '#2a2a2a' },
@@ -126,7 +132,9 @@ function getAppearance() {
         elements: {
           card: { backgroundColor: '#ffffff', border: '1px solid #d4d4d4', boxShadow: '0 4px 24px rgba(0,0,0,0.12)' },
           formButtonPrimary: { color: '#ffffff', fontWeight: '600' },
-          footerActionLink: { color: '#16a34a' },
+          // See the dark-theme block above — same rationale, light palette.
+          footerAction: { display: 'none' },
+          footerActionLink: { color: '#16a34a', display: 'none' },
           identityPreviewEditButton: { color: '#16a34a' },
           socialButtonsBlockButton: { borderColor: '#d4d4d4' },
         },
@@ -461,10 +469,14 @@ export function openSignIn(): void {
  * Open the Clerk sign-up modal.
  *
  * No-op if Clerk is not loaded OR if sign-up is disabled in the Clerk
- * dashboard. Symmetric with openSignIn — used by the "Create account"
- * CTA in AuthHeaderWidget to make the register funnel an explicit
- * first-class action rather than hiding it behind Clerk's sign-in
- * footer link.
+ * dashboard. Symmetric with openSignIn.
+ *
+ * CURRENTLY UNREFERENCED BY THE UI. Account creation was removed from the
+ * dashboard: AuthHeaderWidget no longer renders a "Create account" CTA,
+ * AuthLauncher no longer wraps this, and getAppearance() hides Clerk's own
+ * sign-up footer row. The app signs in to an existing account instead.
+ * Kept as the single re-entry point for when self-serve sign-up returns —
+ * restore the CTA and drop the footerAction override to re-enable.
  */
 export function openSignUp(): void {
   openClerkSurface('open-sign-up');

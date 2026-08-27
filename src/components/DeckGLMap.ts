@@ -5500,7 +5500,7 @@ export class DeckGLMap {
 
     const authorBadge = document.createElement('div');
     authorBadge.className = 'map-author-badge';
-    authorBadge.textContent = '© Elie Habib · Someone™';
+    authorBadge.textContent = '© Elie Habib · Aidan Zhong™';
     toggles.appendChild(authorBadge);
 
     this.container.appendChild(toggles);

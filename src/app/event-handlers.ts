@@ -1938,7 +1938,6 @@ export class EventHandlerManager implements AppModule {
     // also get explicit Settings and Plan & billing destinations inside the
     // avatar menu, keeping account and subscription actions in one place.
     const widget = new AuthHeaderWidget(
-      () => modal.open(),
       () => this.ctx.unifiedSettings?.open('settings'),
       () => this.ctx.unifiedSettings?.open('billing'),
     );
@@ -1948,7 +1947,7 @@ export class EventHandlerManager implements AppModule {
       mount.appendChild(widget.getElement());
     }
 
-    this.mobilePrimaryNav.setupAuth(modal);
+    this.mobilePrimaryNav.setupAuth();
   }
 
   setupPlaybackControl(): void {

@@ -1,3 +1,14 @@
+/**
+ * CURRENTLY UNMOUNTED. The "Pro is launched" top banner was removed from the
+ * dashboard: App.ts no longer calls showProBanner(), panel-layout.ts no longer
+ * renders #proBannerSlot, and index.html's pre-paint reservation
+ * (wm-pro-banner-reserved) is gone.
+ *
+ * The module and its policy service (services/pro-banner-policy.ts) are kept
+ * intact — with their unit tests — so the banner can be restored by re-adding
+ * the mount call, the slot element and the reservation. Nothing here runs
+ * until then.
+ */
 import { trackGateHit } from '@/services/analytics';
 import { onEntitlementChange, getEntitlementState, isEntitlementActive } from '@/services/entitlements';
 import { getSubscription, onSubscriptionChange } from '@/services/billing';

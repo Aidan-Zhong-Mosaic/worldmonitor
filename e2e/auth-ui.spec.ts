@@ -1,11 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
-
-/** Click an element via JS to bypass overlay interception. */
-async function jsClick(page: Page, selector: string) {
-  await page.evaluate((sel) => {
-    (document.querySelector(sel) as HTMLElement)?.click();
-  }, selector);
-}
+import { expect, test } from '@playwright/test';
 
 test.describe('auth UI (anonymous state)', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,33 +8,14 @@ test.describe('auth UI (anonymous state)', () => {
     });
   });
 
-  test('Sign In button visible with readable text', async ({ page }) => {
+  // The Sign In button tests were removed with the button itself: the header
+  // exposes no auth entry point now (the dashboard authenticates into a single
+  // existing account programmatically). Anonymous gating is still asserted below.
+  test('header exposes no sign-in or sign-up CTA', async ({ page }) => {
     await page.goto('/');
-    const signInBtn = page.locator('.auth-signin-btn');
-    await signInBtn.waitFor({ timeout: 20000 });
-    await expect(signInBtn).toBeVisible();
-    await expect(signInBtn).toHaveText('Sign In');
-
-    const styles = await signInBtn.evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return { color: cs.color, background: cs.backgroundColor };
-    });
-    expect(styles.color).not.toBe(styles.background);
-  });
-
-  test('Sign In click triggers Clerk modal or overlay', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('.auth-signin-btn').waitFor({ timeout: 20000 });
-    await jsClick(page, '.auth-signin-btn');
-
-    // Clerk renders its modal into .cl-rootBox or an iframe.
-    // When Clerk JS is not configured (no publishable key in test env),
-    // the click simply invokes openSignIn() which is a no-op -- verify
-    // no uncaught errors instead.
-    const errors: string[] = [];
-    page.on('pageerror', (err) => errors.push(err.message));
-    await page.waitForTimeout(1000);
-    expect(errors.filter((e) => e.includes('auth'))).toHaveLength(0);
+    await page.waitForSelector('.panel', { timeout: 20000 });
+    await expect(page.locator('.auth-signin-btn')).toHaveCount(0);
+    await expect(page.locator('.auth-signup-link')).toHaveCount(0);
   });
 
   test('premium panels gated for anonymous users', async ({ page }) => {

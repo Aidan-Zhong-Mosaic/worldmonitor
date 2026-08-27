@@ -43,7 +43,7 @@ test.describe('mobile primary navigation (#5201 P0)', () => {
 
     await page.locator('[data-mobile-tab="more"]').click();
     await expect(page.locator('#mobileMenu')).toHaveClass(/open/);
-    await expect(page.locator('#mobileAuthFallback, #mobileAuthWidgetMount .auth-signin-btn').first()).toBeVisible();
+    await expect(page.locator('.mobile-menu-account')).toBeVisible();
     await page.evaluate(() => history.back());
     await expect(page.locator('#mobileMenu')).not.toHaveClass(/open/);
     await expect(page.locator('[data-mobile-tab="today"]')).toHaveAttribute('aria-current', 'page');

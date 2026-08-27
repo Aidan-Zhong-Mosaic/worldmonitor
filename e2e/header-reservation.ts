@@ -1,6 +1,9 @@
 import { expect, type Page } from '@playwright/test';
 
-export const HEADER_AUTH_SLOT_WIDTH = 200;
+// Mirrors --header-auth-slot-width in src/styles/header.css. The header no
+// longer renders Sign In or Create account, so the slot is sized to the
+// signed-in Clerk avatar (32px) — the only thing that can appear there.
+export const HEADER_AUTH_SLOT_WIDTH = 32;
 
 type Box = {
   height: number;
@@ -48,17 +51,13 @@ export const assertSignedOutAuthHydrationKeepsHeaderStable = async (page: Page):
     const widget = document.createElement('div');
     widget.className = 'auth-header-widget';
 
-    const signInButton = document.createElement('button');
-    signInButton.className = 'auth-signin-btn';
-    signInButton.type = 'button';
-    signInButton.textContent = 'Sign In';
-    widget.appendChild(signInButton);
-
-    const signUpButton = document.createElement('button');
-    signUpButton.className = 'auth-signup-link';
-    signUpButton.type = 'button';
-    signUpButton.textContent = 'Create account';
-    widget.appendChild(signUpButton);
+    // Signed out renders nothing now, so the widest real content is the
+    // signed-in Clerk avatar. Synthesize that to prove it fits the slot.
+    const avatar = document.createElement('div');
+    avatar.className = 'auth-clerk-user-button';
+    avatar.style.width = '32px';
+    avatar.style.height = '32px';
+    widget.appendChild(avatar);
 
     authMount.replaceChildren(widget);
 
@@ -100,11 +99,13 @@ export const assertSignedOutAuthHydrationKeepsHeaderStable = async (page: Page):
   expect(hydrated.authMountMinWidth).toBe(`${HEADER_AUTH_SLOT_WIDTH}px`);
   expect(result.beforeAuthMountBox.width).toBeGreaterThanOrEqual(HEADER_AUTH_SLOT_WIDTH);
   expect(hydrated.afterAuthMountBox.width).toBeGreaterThanOrEqual(HEADER_AUTH_SLOT_WIDTH);
-  expect(hydrated.hydratedWidgetBox.width).toBeGreaterThan(180);
+  // The avatar must fit inside the reserved slot so hydration cannot widen
+  // the header.
+  expect(hydrated.hydratedWidgetBox.width).toBeGreaterThan(0);
   expect(hydrated.hydratedWidgetBox.width).toBeLessThanOrEqual(HEADER_AUTH_SLOT_WIDTH + 1);
-  if (result.pendingSkeletonCount > 0) {
-    expect(result.pendingSkeletonCount).toBe(2);
-  }
+  // The pending state renders no skeletons at all now: they existed to reserve
+  // space for the Sign In button, which no longer renders.
+  expect(result.pendingSkeletonCount).toBe(0);
   expectBoxesToMatch(hydrated.afterAuthMountBox, result.beforeAuthMountBox, 'auth mount');
   expectBoxesToMatch(hydrated.afterHeaderBox, result.beforeHeaderBox, 'header');
 };

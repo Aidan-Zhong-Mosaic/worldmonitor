@@ -14482,24 +14482,9 @@ a.prediction-link:hover {
   text-align: center;
 }
 
-.mobile-auth-fallback {
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  font: 600 calc(14px * var(--wm-panel-effective-scale, 1))/1 var(--font-mono, monospace);
-  cursor: pointer;
-}
-
 .mobile-menu-account .auth-header-widget {
   min-height: 44px;
   justify-content: flex-start;
-}
-
-.mobile-menu-account .auth-signin-btn,
-.mobile-menu-account .auth-signup-link {
-  min-height: 44px;
 }
 
 .mobile-menu-item {
@@ -24147,27 +24132,6 @@ body.map-width-resizing {
   gap: 8px;
 }
 
-.auth-signup-link {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text);
-  font-size: calc(13px * var(--wm-panel-effective-scale, 1));
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
-}
-.auth-signup-link:hover {
-  border-color: var(--green);
-  color: var(--green);
-}
-.auth-signup-link:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 55%, transparent);
-}
-
 .auth-settings-btn {
   width: 32px;
   height: 32px;
@@ -24187,29 +24151,6 @@ body.map-width-resizing {
   color: var(--green);
 }
 .auth-settings-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 55%, transparent);
-}
-
-.auth-signin-btn {
-  padding: 6px 14px;
-  border: 1px solid var(--green);
-  border-radius: 6px;
-  background: var(--green);
-  /* Pinned dark, not var(--bg). In light theme var(--bg) is near-white and
-     falls to ~3.13:1 on var(--green), failing WCAG AA for 13px text. */
-  color: #0a0a0a;
-  font-size: calc(13px * var(--wm-panel-effective-scale, 1));
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity 0.15s, box-shadow 0.15s;
-}
-.auth-signin-btn:hover {
-  opacity: 0.9;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 35%, transparent);
-}
-.auth-signin-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 55%, transparent);
 }

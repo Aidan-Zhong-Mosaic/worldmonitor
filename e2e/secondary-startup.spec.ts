@@ -32,7 +32,7 @@ test.describe('secondary startup work', () => {
     });
 
     await page.goto('/');
-    await page.locator('.auth-signin-btn, .panel').first().waitFor({ timeout: 20000 });
+    await page.locator('.panel').first().waitFor({ timeout: 20000 });
     // Anchor the pre-idle assertion to a deterministic app-readiness signal
     // rather than a fixed wall-clock wait (flaky on starved CI): once event
     // handlers are wired, any eager (non-deferred) secondary request would

@@ -1,16 +1,16 @@
-import { openSignIn, openSignUp } from '@/services/clerk';
+import { openSignIn } from '@/services/clerk';
 
 /**
- * Minimal auth launcher -- wraps Clerk.openSignIn() / openSignUp().
+ * Minimal auth launcher -- wraps Clerk.openSignIn().
  * Replaces the custom OTP modal. Clerk handles all UI.
+ *
+ * Sign-up / account creation is deliberately NOT exposed: the app signs in
+ * to a single existing account (see clerk.ts getAppearance, which also hides
+ * Clerk's own "Sign up" footer link).
  */
 export class AuthLauncher {
   public open(): void {
     openSignIn();
-  }
-
-  public openSignUp(): void {
-    openSignUp();
   }
 
   public close(): void {

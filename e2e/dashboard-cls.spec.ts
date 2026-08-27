@@ -317,7 +317,6 @@ const exerciseDashboardBoot = async (
 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.locator('.header').waitFor();
-  await page.locator('.pro-banner').waitFor({ timeout: 15000 });
   await page.locator('.main-content').waitFor();
   await page.locator('#panelsGrid').waitFor();
 

@@ -1,6 +1,5 @@
 import type { AppContext } from '@/app/app-context';
 import type { MapView } from '@/components/MapContainer';
-import type { AuthLauncher } from '@/components/AuthLauncher';
 import { AuthHeaderWidget } from '@/components/AuthHeaderWidget';
 import { SITE_VARIANT } from '@/config';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
@@ -43,21 +42,17 @@ export class MobilePrimaryNav {
     });
   }
 
-  setupAuth(modal: AuthLauncher): void {
+  // No sign-in entry point: the mobile menu's account row shows the account
+  // widget once a session exists and nothing at all when signed out. The
+  // "Sign In" fallback button was removed along with the header CTA.
+  setupAuth(): void {
     const mobileMount = document.getElementById('mobileAuthWidgetMount');
-    const fallback = document.getElementById('mobileAuthFallback') as HTMLButtonElement | null;
-    const openAuth = () => {
-      this.closeMenu();
-      modal.open();
-    };
-    fallback?.addEventListener('click', openAuth, { signal: this.listeners.signal });
     if (!mobileMount) return;
 
-    this.authWidget = new AuthHeaderWidget(openAuth);
+    this.authWidget = new AuthHeaderWidget();
     mobileMount.appendChild(this.authWidget.getElement());
     const renderPending = (pending: boolean) => {
       mobileMount.hidden = pending;
-      if (fallback) fallback.hidden = !pending;
     };
     renderPending(getAuthState().isPending);
     this.unsubscribeAuth = subscribeAuthState((state) => renderPending(state.isPending));
