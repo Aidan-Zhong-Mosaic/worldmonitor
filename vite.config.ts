@@ -139,6 +139,7 @@ const PANEL_CLUSTER: Record<string, PanelChunkName> = {
   // CorrelationPanel base lives here, so all *Correlation consumers MUST stay
   // in this cluster — splitting them across clusters caused TDZ on init.
   ChatAnalyst: 'panels-intel', CII: 'panels-intel',
+  PortfolioExposure: 'panels-intel',
   Cascade: 'panels-intel', Correlation: 'panels-intel',
   CountryBrief: 'panels-intel', CountryBriefPage: 'panels-intel',
   CountryDeepDive: 'panels-intel',

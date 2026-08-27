@@ -216,6 +216,7 @@ export function variantSwitcherHref(
 export const DEFERRED_PANEL_NATURAL_FOOTPRINTS: Readonly<Record<string, DeferredPanelShellFootprint>> = {
   cii: { rowSpan: 2 },
   'chat-analyst': { rowSpan: 2 },
+  'portfolio-exposure': { rowSpan: 2 },
   'china-corridors': { rowSpan: 2, className: 'panel-wide' },
   'china-activity-nowcast': { rowSpan: 2, className: 'panel-wide' },
   'consumer-prices': { rowSpan: 2 },
