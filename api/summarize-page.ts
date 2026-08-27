@@ -101,7 +101,9 @@ function buildPanelBlock(panels: PanelInput[]): string {
 
 const SYSTEM_PROMPT = `You are a concise briefing assistant for a live world monitoring dashboard.
 You will be given the text currently visible in several dashboard panels, each under a "### <panel title>" heading.
-For each panel, you have to summarize what is going on, and rank then panels information by severity and give me the top 3. Use bullet point for the panels, with the panel title and the summary. The summary should be brief as 1 sentence
+For each panel, you have to summarize what is going on, and rank then panels information by severity and give me the top 3. Use bullet point for the panels, with the panel title and the summary. The summary should be brief as 1 sentence.
+The return should be the list of bullet point I asked for, follow up by a general summary.
+Notice that this is written to underwriters of our insurance company, not for a technical person, so you are allowed to use financial language instead of data science language.
 Only use the information given. Do not invent facts, numbers, or sources not present in the panel text. If the panels contain little of substance, say so briefly instead of padding.`;
 
 export default async function handler(req: Request): Promise<Response> {
