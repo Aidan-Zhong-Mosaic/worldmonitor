@@ -224,3 +224,6 @@ playground-pricing.html
 /tests/mosaic-lob-registry.test.mts
 /World_Monitor_Data_Source_Tracker.xlsx
 /~$World_Monitor_Data_Source_Tracker.xlsx
+
+# Real policy extracts for the Exposure Lens PoC — never commit portfolio data
+data/exposure-poc/

@@ -10112,6 +10112,154 @@ a.prediction-link:hover {
   cursor: progress;
 }
 
+/* Portfolio Exposure panel — the Exposure Lens surface in the grid */
+.pxp-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pxp-headline {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.pxp-headline-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pxp-figure {
+  font-size: calc(17px * var(--wm-panel-effective-scale, 1));
+  font-weight: 700;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.pxp-figure-label {
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pxp-card {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: var(--surface);
+}
+
+.pxp-card-headline {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--text);
+  font-family: inherit;
+  font-size: calc(12px * var(--wm-panel-effective-scale, 1));
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.pxp-card-headline:hover,
+.pxp-card-headline:focus-visible {
+  color: var(--green);
+  outline: none;
+}
+
+.pxp-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+  font-size: calc(9.5px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim);
+}
+
+.pxp-dot { opacity: 0.5; }
+
+.pxp-card-stats {
+  margin-top: 7px;
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pxp-card-stats strong { color: var(--green); }
+.pxp-limit { color: var(--text-dim); }
+
+.pxp-rows {
+  margin-top: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pxp-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1px 10px;
+  font-size: calc(10.5px * var(--wm-panel-effective-scale, 1));
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+}
+
+.pxp-row-party {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pxp-row-amount {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.pxp-row-why {
+  grid-column: 1 / -1;
+  color: var(--text-dim);
+  font-size: calc(9.5px * var(--wm-panel-effective-scale, 1));
+  line-height: 1.4;
+}
+
+.pxp-row-more .pxp-row-party { color: var(--text-dim); font-style: italic; }
+
+.pxp-caveats {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+  font-size: calc(9px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.pxp-empty {
+  padding: 16px 0;
+  color: var(--text-dim);
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+  font-style: italic;
+}
+
 /* Summarize Page (AI Summary) button + modal */
 .summarize-page-btn {
   background: transparent;

@@ -2431,6 +2431,14 @@ export class PanelLayoutManager implements AppModule {
       this.importPanel('macro-signals', () => import('@/components/MacroSignalsPanel'), 'MacroSignalsPanel', (MacroSignalsPanel) => new MacroSignalsPanel()),
     );
     this.lazyDefaultPanel('fear-greed', () => import('@/components/FearGreedPanel'), 'FearGreedPanel');
+    // Self-loading: the portfolio is a static extract fetched inside the
+    // network, so it needs no slot in the data-loader's refresh schedule.
+    this.lazyDefaultPanel(
+      'portfolio-exposure',
+      () => import('@/components/PortfolioExposurePanel'),
+      'PortfolioExposurePanel',
+      (panel) => { void panel.fetchData(); },
+    );
     this.lazyDefaultPanel('aaii-sentiment', () => import('@/components/AAIISentimentPanel'), 'AAIISentimentPanel');
     this.lazyDefaultPanel('market-breadth', () => import('@/components/MarketBreadthPanel'), 'MarketBreadthPanel');
     this.lazyDefaultPanel('news-market-correlation', () => import('@/components/NewsMarketCorrelationPanel'), 'NewsMarketCorrelationPanel');
