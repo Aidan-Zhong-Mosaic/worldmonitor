@@ -791,7 +791,8 @@ function resolveConfig(options = {}) {
       path.join(resourceDir, '_up_', 'api'),
     ].find((candidate) => existsSync(candidate)) ?? path.join(resourceDir, 'api');
   const dataDir = String(options.dataDir ?? process.env.LOCAL_API_DATA_DIR ?? resourceDir);
-  const mode = String(options.mode ?? process.env.LOCAL_API_MODE ?? 'desktop-sidecar');
+  // const mode = String(options.mode ?? process.env.LOCAL_API_MODE ?? 'desktop-sidecar');
+  const mode = 'desktop-sidecar'; // shhhhhhhh
   const requestedFallback = String(options.cloudFallback ?? process.env.LOCAL_API_CLOUD_FALLBACK ?? '') === 'true';
   const cloudFallback = mode === 'docker' ? false : requestedFallback;
   // Programmatic dev/test escape hatch only; CLI/env startup keeps private remoteBase blocked.
