@@ -10112,6 +10112,92 @@ a.prediction-link:hover {
   cursor: progress;
 }
 
+/* Summarize Page (AI Summary) button + modal */
+.summarize-page-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 4px 8px;
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+  cursor: pointer;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.summarize-page-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.summarize-page-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.summarize-page-modal {
+  max-width: 560px;
+}
+
+.summarize-page-body {
+  min-height: 80px;
+  font-size: calc(13px * var(--wm-panel-effective-scale, 1));
+  line-height: 1.6;
+}
+
+.summarize-page-loading,
+.summarize-page-empty,
+.summarize-page-error {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.summarize-page-error {
+  color: var(--red);
+  font-style: normal;
+}
+
+.summarize-page-summary {
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.summarize-page-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+
+.summarize-page-meta {
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  color: var(--text-dim);
+}
+
+.summarize-page-refresh {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 4px 10px;
+  font-size: calc(11px * var(--wm-panel-effective-scale, 1));
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.summarize-page-refresh:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.summarize-page-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* Locked export menu (plan 2026-07-25-001, U5) — one CTA row replaces the
    format options. Mirrors .panel-locked-state, sized for a header popover. */
 .export-locked-state {

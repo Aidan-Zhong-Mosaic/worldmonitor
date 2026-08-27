@@ -2141,6 +2141,7 @@ export class App {
     this.eventHandlers.setupPizzIntIndicator();
     this.eventHandlers.setupLlmStatusIndicator();
     this.eventHandlers.setupExportPanel();
+    this.eventHandlers.setupSummarizePageButton();
     this.eventHandlers.setupSearchControls();
 
     // Correlation engine is constructed lazily at its post-loadAllData run site

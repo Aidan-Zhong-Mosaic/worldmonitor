@@ -114,6 +114,10 @@ const EVENTS = {
   'widget-ai-open': true,
   'widget-ai-generate': true,
   'widget-ai-success': true,
+  // AI Summary (summarize-page)
+  'summarize-page-open': true,
+  'summarize-page-success': true,
+  'summarize-page-error': true,
   // WM Analyst dashboard control
   'analyst-control-action': true,
   // MCP

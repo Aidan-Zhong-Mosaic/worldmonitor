@@ -290,6 +290,10 @@ interface EndpointRatePolicy {
 // using checkEndpointRateLimit / hasEndpointRatePolicy below — the export is
 // for tooling, not new runtime callers.
 export const ENDPOINT_RATE_POLICIES: Record<string, EndpointRatePolicy> = {
+  // Free-for-all "AI Summary" button (no Pro gate, no per-user quota) —
+  // this scoped per-IP budget is the only cost control on the route, since
+  // it is the entry point for a public LLM call (api/summarize-page.ts).
+  '/api/summarize-page': { limit: 10, window: '60 s' },
   // LLM article summarization is Pro-gated, but still needs a scoped,
   // fail-closed budget so Redis degradation cannot silently lift the
   // per-endpoint spend control.

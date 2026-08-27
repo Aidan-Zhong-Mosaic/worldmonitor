@@ -1600,6 +1600,21 @@ export class EventHandlerManager implements AppModule {
       });
   }
 
+  setupSummarizePageButton(): void {
+    void import('@/components/SummarizePageButton')
+      .then(({ SummarizePageButton }) => {
+        if (this.ctx.isDestroyed) return;
+        const button = new SummarizePageButton();
+        const headerRight = this.ctx.container.querySelector('.header-right');
+        if (headerRight) {
+          headerRight.appendChild(button.getElement());
+        }
+      })
+      .catch((err) => {
+        console.error('[summarize-page] failed to lazy-load SummarizePageButton', err);
+      });
+  }
+
   setupPizzIntIndicator(): void {
     if (SITE_VARIANT !== 'full') return;
 

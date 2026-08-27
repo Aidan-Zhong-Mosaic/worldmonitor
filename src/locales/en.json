@@ -3441,5 +3441,15 @@
     "deleteTab": "Delete tab",
     "deleteTabAria": "Delete tab {{name}}",
     "tabNameAria": "Tab name"
+  },
+  "summarizePage": {
+    "buttonLabel": "Summarize",
+    "buttonTitle": "AI summary of what's currently on your dashboard",
+    "modalTitle": "AI Summary",
+    "loading": "Reading your dashboard\u2026",
+    "emptyState": "No panel content to summarize right now \u2014 add or expand a panel and try again.",
+    "rateLimited": "You've hit the summary limit for now \u2014 try again in a minute.",
+    "unavailable": "Couldn't generate a summary right now. Please try again shortly.",
+    "generatedAt": "Generated {{time}}"
   }
 }
