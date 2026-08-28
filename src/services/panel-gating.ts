@@ -20,6 +20,7 @@ import { getEntitlementState } from './entitlements';
 import { openExternalUrl } from './external-navigation';
 import type { ClientEntitlementBelief } from './premium-denial';
 import { getSecretState } from './runtime-config';
+import { isSelfHostedPremiumUnlocked } from './self-hosted-unlock';
 import { isProUser } from './widget-store';
 
 export enum PanelGateReason {
@@ -53,6 +54,7 @@ export enum PanelGateReason {
  * signals that aren't already covered by isProUser.
  */
 export function hasPremiumAccess(authState?: AuthSession): boolean {
+  if (isSelfHostedPremiumUnlocked()) return true;
   if (getSecretState('WORLDMONITOR_API_KEY').present) return true;
   if (isProUser()) return true;
   if (authState?.user?.role === 'pro') return true;

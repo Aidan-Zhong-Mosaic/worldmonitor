@@ -21,6 +21,7 @@ import {
   DIRECT_LLM_UNVERIFIED_DAILY_QUOTA_LIMIT,
   resolveActiveDirectLlmLimit,
 } from './direct-llm-quota';
+import { isSelfHostedPremiumUnlocked } from './self-hosted-unlock';
 
 export type PremiumCallerIdentity =
   | { isPremium: true; userId: string; kind: 'internal-mcp'; quotaExempt: true }
@@ -223,6 +224,13 @@ export async function requirePremiumRpcAccess<T extends RpcApiErrorLike>(
  * Resolves premium status and the user-bound identity for spend controls.
  */
 export async function resolvePremiumCallerIdentity(request: Request): Promise<PremiumCallerIdentity> {
+  // SELF_HOSTED_UNLOCK_PREMIUM (SELF_HOSTING.md): a self-hosted deployment has
+  // no billing to check against — every caller is the operator. Short-circuits
+  // ahead of every credential path below so no Clerk/Convex config is required.
+  if (isSelfHostedPremiumUnlocked()) {
+    return { isPremium: true, userId: null, kind: 'enterprise', quotaExempt: true };
+  }
+
   // Internal-MCP context: trusted markers are set by the gateway AFTER an
   // HMAC verification on `X-WM-MCP-Internal` succeeds. Inbound copies of
   // these headers are stripped at the gateway entry (defense-in-depth) so

@@ -432,6 +432,7 @@ const RPC_CACHE_TIER: Record<string, CacheTier> = {
 };
 
 import { PREMIUM_RPC_PATHS } from '../src/shared/premium-paths';
+import { isSelfHostedPremiumUnlocked } from './_shared/self-hosted-unlock';
 
 export const PUBLIC_NO_AUTH_RPC_PATHS = new Set<string>([
   '/api/conflict/v1/list-acled-events',
@@ -1164,7 +1165,11 @@ export function createDomainGateway(
     const relayWarmPingVerified = await isRelayWarmPingRequest(request, pathname);
     const requiresDirectLlmQuota = !internalMcpVerified && await shouldReserveGatewayDirectLlmQuota(request, pathname);
     const isTierGated = !internalMcpVerified && !isPublicNoAuthRpc && !seedRefreshVerified && !relayWarmPingVerified && getRequiredTier(pathname) !== null;
-    const needsLegacyProBearerGate = !internalMcpVerified && !isPublicNoAuthRpc && PREMIUM_RPC_PATHS.has(pathname) && !isTierGated;
+    // SELF_HOSTED_UNLOCK_PREMIUM (SELF_HOSTING.md): a self-hosted deployment
+    // has no billing to check against, so the legacy Pro bearer gate never
+    // engages. checkEntitlementDetailed() carries the matching bypass for the
+    // isTierGated path below. See server/_shared/self-hosted-unlock.ts.
+    const needsLegacyProBearerGate = !internalMcpVerified && !isPublicNoAuthRpc && PREMIUM_RPC_PATHS.has(pathname) && !isTierGated && !isSelfHostedPremiumUnlocked();
     const isProFreshCacheRpc = PRO_FRESH_CACHE_RPC_PATHS.has(pathname);
     const needsProFreshnessResolution =
       !internalMcpVerified &&
@@ -1203,7 +1208,10 @@ export function createDomainGateway(
     let keyCheck: { valid: boolean; required: boolean; error?: string; kind?: 'enterprise' | 'session' | 'user' } = internalMcpVerified || isPublicNoAuthRpc || seedRefreshVerified || relayWarmPingVerified
       ? { valid: true, required: false }
       : ((await validateApiKey(request, {
-          forceKey: (isTierGated && !sessionUserId) || needsLegacyProBearerGate,
+          // SELF_HOSTED_UNLOCK_PREMIUM: never force a key on a self-hosted
+          // instance — checkEntitlementDetailed()'s bypass handles the
+          // isTierGated path below once this stops forcing a 401 ahead of it.
+          forceKey: !isSelfHostedPremiumUnlocked() && ((isTierGated && !sessionUserId) || needsLegacyProBearerGate),
         })) as { valid: boolean; required: boolean; error?: string; kind?: 'enterprise' | 'session' | 'user' });
 
     // User-owned API keys (wm_ prefix): when the static WORLDMONITOR_VALID_KEYS

@@ -26,6 +26,7 @@
  */
 
 import { getCachedJson, setCachedJson } from './redis';
+import { isSelfHostedPremiumUnlocked } from './self-hosted-unlock';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -831,6 +832,13 @@ export async function checkEntitlementDetailed(
   corsHeaders: Record<string, string>,
   options: EntitlementCheckOptions = {},
 ): Promise<EntitlementCheckResult> {
+  // SELF_HOSTED_UNLOCK_PREMIUM (SELF_HOSTING.md): self-hosted operators have
+  // no billing to verify against, so every tier-gated endpoint passes as if
+  // unrestricted. See server/_shared/self-hosted-unlock.ts.
+  if (isSelfHostedPremiumUnlocked()) {
+    return { response: null, entitlements: null };
+  }
+
   const requiredTier = getRequiredTier(pathname);
   if (requiredTier === null) {
     // Unrestricted endpoint -- no check needed

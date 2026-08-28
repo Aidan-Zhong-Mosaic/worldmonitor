@@ -102,6 +102,33 @@ services:
 | 🟡 Free (limited) | OpenSky (higher rate limits with account) |
 | 🔴 Paid | Cloudflare Radar (internet outages) |
 
+## 🔓 Unlocking Premium Panels
+
+Some panels (Stock Analysis, Backtesting, Daily Market Brief, WM Analyst,
+Latest Brief, Regional Intelligence, Market Implications, Trade Policy, Global
+Procurement, WSB Ticker Scanner, plus several cards inside the country
+deep-dive panel) normally show a "Sign In to Unlock" / "Upgrade to Pro" CTA.
+That gate exists for the hosted worldmonitor.app product's Clerk + Convex +
+billing stack — a self-hosted instance you run yourself has no one to bill,
+so you can unlock all of it without setting up Clerk or Convex:
+
+```bash
+# .env — server-side, read at request time (no rebuild needed)
+echo "SELF_HOSTED_UNLOCK_PREMIUM=true" >> .env
+# client-side, baked into the frontend bundle at build time
+echo "VITE_SELF_HOSTED_UNLOCK_PREMIUM=true" >> .env
+
+# Rebuild so the client flag gets baked into dist/
+docker compose build worldmonitor
+docker compose up -d
+```
+
+Set the server flag only (`SELF_HOSTED_UNLOCK_PREMIUM`) and every premium RPC
+still answers without auth, but the UI keeps showing the paywall CTA until you
+also set the client flag and rebuild. Only ever set these on a deployment you
+run for yourself — anyone who can reach the server gets full access with no
+sign-in, so don't set them on an instance you expose to other people.
+
 ## 🌱 Seeding Data
 
 The seed scripts fetch upstream data and write it to Redis. They run **on the host** (not inside the container) and need the Redis REST proxy to be running.
