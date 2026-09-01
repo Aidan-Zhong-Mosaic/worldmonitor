@@ -26,6 +26,7 @@ services:
       LOCAL_API_PORT: "46123"
       LOCAL_API_MODE: "docker"
       LOCAL_API_CLOUD_FALLBACK: "false"
+      LOCAL_API_TOKEN: "${LOCAL_API_TOKEN}"
       # Unlocks every "Sign In to Unlock Premium" panel/RPC with no Clerk/Convex
       # billing setup — see "Unlocking Premium Panels" in SELF_HOSTING.md. Also
       # requires VITE_SELF_HOSTED_UNLOCK_PREMIUM=true in .env at build time.
