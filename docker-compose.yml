@@ -29,7 +29,7 @@ services:
       # Unlocks every "Sign In to Unlock Premium" panel/RPC with no Clerk/Convex
       # billing setup — see "Unlocking Premium Panels" in SELF_HOSTING.md. Also
       # requires VITE_SELF_HOSTED_UNLOCK_PREMIUM=true in .env at build time.
-      SELF_HOSTED_UNLOCK_PREMIUM: "${SELF_HOSTED_UNLOCK_PREMIUM:-false}"
+      SELF_HOSTED_UNLOCK_PREMIUM: "true"
       WS_RELAY_URL: "http://ais-relay:3004"
       RELAY_SHARED_SECRET: "${RELAY_SHARED_SECRET:?RELAY_SHARED_SECRET required — generate with: openssl rand -hex 32}"
       # LLM provider (any OpenAI-compatible endpoint)
