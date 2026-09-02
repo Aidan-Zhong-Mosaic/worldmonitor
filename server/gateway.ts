@@ -1163,7 +1163,13 @@ export function createDomainGateway(
       || isPublicSharedRpcRequest(request.url, request.method);
     const seedRefreshVerified = await isResilienceRankingSeedRefreshRequest(request, pathname);
     const relayWarmPingVerified = await isRelayWarmPingRequest(request, pathname);
-    const requiresDirectLlmQuota = !internalMcpVerified && await shouldReserveGatewayDirectLlmQuota(request, pathname);
+    // SELF_HOSTED_UNLOCK_PREMIUM: the direct-LLM daily meter prices hosted
+    // spend against a Clerk identity. A self-hoster pays their own LLM bill and
+    // has no sessionUserId, so leaving this on 401s "Pro authentication
+    // required" on every DIRECT_LLM_GATEWAY_QUOTA_PATHS route —
+    // classify-event, deduct-situation, get-country-intel-brief,
+    // analyze-stock, summarize-article.
+    const requiresDirectLlmQuota = !internalMcpVerified && !isSelfHostedPremiumUnlocked() && await shouldReserveGatewayDirectLlmQuota(request, pathname);
     const isTierGated = !internalMcpVerified && !isPublicNoAuthRpc && !seedRefreshVerified && !relayWarmPingVerified && getRequiredTier(pathname) !== null;
     // SELF_HOSTED_UNLOCK_PREMIUM (SELF_HOSTING.md): a self-hosted deployment
     // has no billing to check against, so the legacy Pro bearer gate never
@@ -1196,16 +1202,9 @@ export function createDomainGateway(
       }
     }
 
-    // API key validation — tier-gated endpoints require EITHER an API key OR a valid bearer token.
-    // Authenticated users (sessionUserId present) bypass the API key requirement.
-    //
-    // Internal-MCP verified path: skip validateApiKey entirely. The HMAC
-    // verify replaced the API key contract for this request — running
-    // validateApiKey would 401 every Pro tool fetch (no wm_ key on the
-    // request). Telemetry stays attributed via the verified userId set
-    // above; entitlement re-check (`features.tier ≥ 1 && mcpAccess`) was
-    // already performed before flipping `internalMcpVerified = true`.
-    let keyCheck: { valid: boolean; required: boolean; error?: string; kind?: 'enterprise' | 'session' | 'user' } = internalMcpVerified || isPublicNoAuthRpc || seedRefreshVerified || relayWarmPingVerified
+    // SELF_HOSTED_UNLOCK_PREMIUM (SELF_HOSTING.md): skip credential validation
+    // outright, alongside the other pre-verified paths.
+    let keyCheck: { valid: boolean; required: boolean; error?: string; kind?: 'enterprise' | 'session' | 'user' } = internalMcpVerified || isPublicNoAuthRpc || seedRefreshVerified || relayWarmPingVerified || isSelfHostedPremiumUnlocked()
       ? { valid: true, required: false }
       : ((await validateApiKey(request, {
           // SELF_HOSTED_UNLOCK_PREMIUM: never force a key on a self-hosted
