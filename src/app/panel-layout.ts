@@ -52,6 +52,7 @@ import { initEntitlementSubscription, destroyEntitlementSubscription, isEntitlem
 import { createEntitlementReloadController } from '@/services/entitlement-reload-controller';
 import { initSubscriptionWatch, destroySubscriptionWatch, onSubscriptionChange } from '@/services/billing';
 import { initPaymentFailureBanner } from '@/components/payment-failure-banner';
+import { initSelfHostedSourcesWarningBanner } from '@/components/self-hosted-sources-warning-banner';
 import {
   handleCheckoutReturn,
   resolveCheckoutReturnRouting,
@@ -523,6 +524,10 @@ export class PanelLayoutManager implements AppModule {
     // a user signs in mid-session and the App.ts auth-state subscription
     // (App.ts:995-1006) starts the Convex subscription watch.
     this.unsubscribePaymentFailureBanner = initPaymentFailureBanner();
+
+    // Self-hosted builds only (checks VITE_SELF_HOSTED_UNLOCK_PREMIUM) — the
+    // open-source feeds haven't been vetted one by one yet, so flag it.
+    initSelfHostedSourcesWarningBanner();
 
     // Defer Convex subscriptions until a real Clerk identity exists.
     //

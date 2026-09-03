@@ -2319,6 +2319,9 @@
       "cta": "Upgrade to Pro →",
       "dismiss": "Dismiss"
     },
+    "selfHostedSourcesWarning": {
+      "message": "Self-hosted build: the open-source data sources feeding this dashboard haven't been individually vetted for accuracy yet — that review is still in progress. Treat the data accordingly."
+    },
     "billingState": {
       "onHoldDesc": "Payment failed. Update your payment method to restore premium access.",
       "onHoldBannerMessage": "Payment failed. Update your payment method to keep your subscription active.",
