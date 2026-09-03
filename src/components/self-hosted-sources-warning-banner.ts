@@ -4,57 +4,108 @@
  * progress) — flag it to whoever is standing up their own instance so they
  * don't treat every feed as fully verified. Never shown on the hosted
  * worldmonitor.app product.
+ *
+ * Blocking full-screen modal in front of the whole dashboard (all panels) —
+ * no backdrop-click or Escape dismiss, only the explicit acknowledgment
+ * button, so it can't be missed. Reappears each fresh browser session
+ * (sessionStorage), matching payment-failure-banner.ts's dismiss convention.
  */
 
 import { isSelfHostedPremiumUnlocked } from '@/services/self-hosted-unlock';
 import { t } from '@/services/i18n';
-import { setTrustedHtml, trustedHtml } from '@/utils/dom-utils';
+import { setTrustedHtml, trustedHtml, getFocusableElements } from '@/utils/dom-utils';
 
-const BANNER_ID = 'self-hosted-sources-warning-banner';
+const OVERLAY_ID = 'self-hosted-sources-warning-overlay';
 const DISMISS_KEY = 'wm-self-hosted-sources-warning-dismissed';
 
 export function initSelfHostedSourcesWarningBanner(): void {
   if (!isSelfHostedPremiumUnlocked()) return;
-  if (document.getElementById(BANNER_ID)) return;
+  if (document.getElementById(OVERLAY_ID)) return;
 
   try {
     if (sessionStorage.getItem(DISMISS_KEY) === '1') return;
   } catch { /* noop */ }
 
-  const banner = document.createElement('div');
-  banner.id = BANNER_ID;
-  Object.assign(banner.style, {
+  const lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+  const overlay = document.createElement('div');
+  overlay.id = OVERLAY_ID;
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'wm-shsw-title');
+  Object.assign(overlay.style, {
     position: 'fixed',
-    top: '0',
-    left: '0',
-    right: '0',
-    zIndex: '99998',
-    padding: '10px 20px',
-    background: '#b45309',
-    color: '#fff',
-    fontSize: '13px',
-    textAlign: 'center',
+    inset: '0',
+    zIndex: '2147483000',
+    background: 'rgba(0,0,0,0.72)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+    padding: '20px',
   });
 
-  setTrustedHtml(banner, trustedHtml(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/>
-      <line x1="12" y1="17" x2="12.01" y2="17"/>
-    </svg>
-    <span>${t('components.selfHostedSourcesWarning.message')}</span>
-    <button id="wm-shsw-dismiss-btn" style="background:transparent;color:#fff;border:none;cursor:pointer;font-size:calc(18px * var(--wm-panel-effective-scale, 1));padding:0 4px;line-height:1;">&times;</button>
-  `, "self-hosted sources warning banner"));
+  const modal = document.createElement('div');
+  Object.assign(modal.style, {
+    background: '#1c1608',
+    border: '1px solid #b45309',
+    borderRadius: '10px',
+    maxWidth: '480px',
+    width: '100%',
+    padding: '24px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    color: '#fff',
+  });
 
-  document.body.appendChild(banner);
+  setTrustedHtml(modal, trustedHtml(`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <h2 id="wm-shsw-title" style="margin:0;font-size:16px;font-weight:700;color:#f59e0b;">${t('components.selfHostedSourcesWarning.title')}</h2>
+    </div>
+    <p style="margin:0 0 20px;font-size:14px;line-height:1.5;color:#e5e5e5;">${t('components.selfHostedSourcesWarning.message')}</p>
+    <div style="display:flex;justify-content:flex-end;">
+      <button id="wm-shsw-ack-btn" style="background:#f59e0b;color:#1c1608;border:none;border-radius:6px;padding:8px 18px;font-weight:700;font-size:14px;cursor:pointer;">${t('components.selfHostedSourcesWarning.acknowledge')}</button>
+    </div>
+  `, "self-hosted sources warning modal"));
 
-  document.getElementById('wm-shsw-dismiss-btn')?.addEventListener('click', () => {
-    banner.remove();
+  overlay.appendChild(modal);
+
+  const close = (): void => {
+    document.removeEventListener('keydown', onKeydown, true);
+    overlay.remove();
     try { sessionStorage.setItem(DISMISS_KEY, '1'); } catch { /* noop */ }
+    lastFocusedElement?.focus?.();
+  };
+
+  // No backdrop-click / Escape dismiss — acknowledgment is mandatory. Tab is
+  // still trapped inside the modal so focus can't leak to the dashboard
+  // behind it while it's up.
+  const onKeydown = (e: KeyboardEvent): void => {
+    if (e.key !== 'Tab') return;
+    const focusable = getFocusableElements(overlay);
+    if (focusable.length === 0) return;
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    const active = document.activeElement;
+    if (!focusable.includes(active as HTMLElement)) {
+      e.preventDefault();
+      first.focus();
+    } else if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener('keydown', onKeydown, true);
+
+  document.body.appendChild(overlay);
+  modal.querySelector('#wm-shsw-ack-btn')?.addEventListener('click', close);
+  requestAnimationFrame(() => {
+    modal.querySelector<HTMLElement>('#wm-shsw-ack-btn')?.focus();
   });
 }

@@ -2327,6 +2327,11 @@
       "rubBase": "Banco da Rússia — rublos por 1 unidade",
       "rubPerUnit": "Rublos por unidade",
       "sourceCbr": "Fonte: Banco da Rússia"
+    },
+    "selfHostedSourcesWarning": {
+      "title": "Data sources not yet individually verified",
+      "message": "This self-hosted build pulls from many open-source data feeds. We haven't reviewed each one individually for accuracy yet — that audit is still in progress. Treat the data accordingly.",
+      "acknowledge": "I understand"
     }
   },
   "popups": {
@@ -3459,5 +3464,17 @@
       "description": "Ativar fontes sobre Irã, Israel, Golfo e regiões curdas"
     },
     "unavailable": "A predefinição {{preset}} não está disponível com os painéis atuais"
+  },
+  "summarizePage": {
+    "buttonLabel": "Summarize",
+    "buttonTitle": "AI summary of what's currently on your dashboard",
+    "modalTitle": "AI Summary",
+    "loading": "Reading your dashboard…",
+    "emptyState": "No panel content to summarize right now — add or expand a panel and try again.",
+    "rateLimited": "You've hit the summary limit for now — try again in a minute.",
+    "unavailable": "Couldn't generate a summary right now. Please try again shortly.",
+    "generatedAt": "Generated {{time}}",
+    "goToPanel": "Go to {{panel}}",
+    "sourcesLabel": "Read {{count}} panels:"
   }
 }

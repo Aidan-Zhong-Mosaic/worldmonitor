@@ -2320,7 +2320,9 @@
       "dismiss": "Dismiss"
     },
     "selfHostedSourcesWarning": {
-      "message": "Self-hosted build: the open-source data sources feeding this dashboard haven't been individually vetted for accuracy yet — that review is still in progress. Treat the data accordingly."
+      "title": "Data sources not yet individually verified",
+      "message": "This self-hosted build pulls from many open-source data feeds. We haven't reviewed each one individually for accuracy yet — that audit is still in progress. Treat the data accordingly.",
+      "acknowledge": "I understand"
     },
     "billingState": {
       "onHoldDesc": "Payment failed. Update your payment method to restore premium access.",
