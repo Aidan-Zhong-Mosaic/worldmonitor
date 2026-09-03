@@ -30,7 +30,7 @@ export interface LobSelection<T extends string = string> {
 
 export const LOB_PANELS: Record<LobId, LobSelection> = {
   'political-violence': {
-    on: ['portfolio-exposure', 'map', 'live-news', 'pipeline-status', 'threat-timeline', 'strategic-posture', 'forecast', 'intel', 'cascade', 'escalation-correlation', 'politics', 'middleeast'],
+    on: ['portfolio-exposure', 'map', 'live-news', 'pipeline-status', 'threat-timeline', 'intel', 'cascade', 'escalation-correlation', 'politics', 'middleeast'],
     avail: ['energy', 'world-clock', 'energy-risk-overview', 'storage-facility-map', 'fuel-shortages', 'energy-crisis', 'live-webcams', 'us', 'europe', 'africa', 'latam', 'asia', 'thinktanks', 'displacement', 'population-exposure', 'cross-source-signals', 'geo-hubs'],
   },
   'cyber': {
