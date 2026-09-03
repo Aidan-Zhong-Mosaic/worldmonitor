@@ -452,6 +452,11 @@
       "cta": "Upgrade to Pro →",
       "dismiss": "Dismiss"
     },
+    "selfHostedSourcesWarning": {
+      "title": "Data sources not yet individually verified",
+      "message": "This self-hosted build pulls from many open-source feeds we haven't individually verified yet — that review is in progress.",
+      "acknowledge": "I understand"
+    },
     "settings": {
       "exportSettings": "Export Settings",
       "importSettings": "Import Settings",

@@ -525,10 +525,6 @@ export class PanelLayoutManager implements AppModule {
     // (App.ts:995-1006) starts the Convex subscription watch.
     this.unsubscribePaymentFailureBanner = initPaymentFailureBanner();
 
-    // Self-hosted builds only (checks VITE_SELF_HOSTED_UNLOCK_PREMIUM) — the
-    // open-source feeds haven't been vetted one by one yet, so flag it.
-    initSelfHostedSourcesWarningBanner();
-
     // Defer Convex subscriptions until a real Clerk identity exists.
     //
     // `getUserId()` (user-identity.ts) always returns truthy for browser
@@ -666,6 +662,14 @@ export class PanelLayoutManager implements AppModule {
     // finish-setup chip). Deferred off the boot critical path like the panel
     // hydration scheduler above.
     this.proActivationController.init();
+
+    // Self-hosted builds only (checks VITE_SELF_HOSTED_UNLOCK_PREMIUM) — the
+    // open-source feeds haven't been vetted one by one yet, so flag it. Must
+    // run here (not the constructor): initI18n() resolves in App.ts before
+    // panelLayout.init() is awaited, but the constructor runs earlier still,
+    // while i18next.isInitialized is still false — t() returns `undefined`
+    // for every key until then, which rendered literally as "undefined" text.
+    initSelfHostedSourcesWarningBanner();
   }
 
   /**
