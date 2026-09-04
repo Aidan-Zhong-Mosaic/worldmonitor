@@ -2604,7 +2604,7 @@
     },
     "selfHostedSourcesWarning": {
       "title": "Data sources not yet individually verified",
-      "message": "This self-hosted build pulls from many open-source feeds we haven't individually verified yet — that review is in progress.",
+      "message": "This self-hosted build aggregates content from multiple open-source feeds that have not yet been individually verified. Our source validation review is currently in progress. Please use the information accordingly and independently verify any critical details before relying on them.",
       "acknowledge": "I understand"
     }
   },
