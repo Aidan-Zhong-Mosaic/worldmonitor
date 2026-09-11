@@ -34,24 +34,24 @@ export const LOB_PANELS: Record<LobId, LobSelection> = {
     avail: [],
   },
   'cyber': {
-    on: ['portfolio-exposure', 'map', 'live-news', 'world-clock', 'live-webcams', 'security', 'cloud', 'service-status', 'cascade', 'security-advisories', 'cross-source-signals'],
-    avail: ['ai', 'tech', 'policy', 'crypto', 'github', 'tech-readiness', 'stablecoins', 'ai-regulation', 'crypto-news', 'defi-tokens', 'fintech'],
+    on: ['portfolio-exposure', 'map', 'live-news', 'world-clock', 'live-webcams', 'ai', 'tech', 'security', 'policy', 'crypto', 'cloud', 'service-status', 'tech-readiness', 'stablecoins', 'ai-regulation', 'crypto-news', 'defi-tokens', 'fintech', 'cascade', 'security-advisories', 'cross-source-signals'],
+    avail: [],
   },
   'political-risk': {
     on: ['portfolio-exposure', 'map', 'live-news', 'commodity-news', 'gold-silver', 'energy', 'mining-news', 'critical-minerals', 'base-metals', 'mining-companies', 'commodity-regulation', 'commodities', 'energy-complex', 'pipeline-status', 'macro-signals', 'gulf-economies', 'gcc-investments', 'world-clock', 'energy-risk-overview', 'fuel-shortages', 'energy-crisis', 'live-webcams', 'forex', 'bonds', 'commodities-news', 'centralbanks', 'economic-news', 'macro-tiles', 'gccNews', 'threat-timeline', 'intel', 'escalation-correlation', 'politics', 'us', 'europe', 'middleeast', 'africa', 'latam', 'asia', 'gov', 'thinktanks', 'fao-food-price-index', 'disease-outbreaks', 'displacement', 'climate-news', 'national-debt', 'cross-source-signals', 'geo-hubs'],
     avail: [],
   },
   'transactional-liability': {
-    on: ['portfolio-exposure', 'map', 'live-news', 'macro-signals', 'gcc-investments', 'live-webcams', 'tech', 'startups', 'unicorns', 'ipo', 'funding', 'fin-regulation', 'institutional'],
-    avail: ['renewable', 'positioning-247', 'critical-minerals', 'base-metals', 'mining-companies', 'commodity-regulation', 'commodities', 'energy-complex', 'heatmap', 'gulf-economies', 'world-clock', 'ai', 'vcblogs', 'regionalStartups', 'accelerators', 'policy', 'layoffs', 'finance', 'crypto', 'hardware', 'cloud', 'events', 'tech-readiness', 'etf-flows', 'stablecoins', 'tech-hubs', 'ai-regulation', 'markets-news', 'forex', 'bonds', 'centralbanks', 'economic-news', 'macro-tiles', 'fear-greed', 'market-breadth', 'derivatives', 'analysis', 'gccNews', 'forecast', 'politics', 'us', 'europe', 'middleeast', 'africa', 'latam', 'asia', 'gov'],
+    on: ['portfolio-exposure', 'map', 'live-news', 'macro-signals', 'gcc-investments', 'live-webcams', 'ai', 'tech', 'startups', 'unicorns', 'policy', 'crypto', 'cloud', 'ipo', 'funding', 'stablecoins', 'fin-regulation', 'institutional'],
+    avail: ['renewable', 'positioning-247', 'critical-minerals', 'base-metals', 'mining-companies', 'commodity-regulation', 'commodities', 'energy-complex', 'heatmap', 'gulf-economies', 'world-clock', 'vcblogs', 'regionalStartups', 'accelerators', 'layoffs', 'finance', 'hardware', 'events', 'tech-readiness', 'etf-flows', 'tech-hubs', 'ai-regulation', 'markets-news', 'forex', 'bonds', 'centralbanks', 'economic-news', 'macro-tiles', 'fear-greed', 'market-breadth', 'derivatives', 'analysis', 'gccNews', 'forecast', 'politics', 'us', 'europe', 'middleeast', 'africa', 'latam', 'asia', 'gov'],
   },
   'financial-institutions': {
-    on: ['portfolio-exposure', 'map', 'live-news', 'heatmap', 'macro-signals', 'live-webcams', 'security', 'finance', 'crypto', 'ipo', 'etf-flows', 'stablecoins', 'markets-news', 'forex', 'bonds', 'centralbanks', 'economic-news', 'macro-tiles', 'fear-greed', 'market-breadth', 'derivatives', 'fintech', 'fin-regulation', 'institutional', 'national-debt'],
-    avail: ['positioning-247', 'gold-silver', 'gulf-economies', 'gcc-investments', 'world-clock', 'unicorns', 'layoffs', 'funding', 'service-status', 'crypto-news', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens', 'aaii-sentiment', 'analysis'],
+    on: ['portfolio-exposure', 'map', 'live-news', 'heatmap', 'macro-signals', 'live-webcams', 'security', 'finance', 'crypto', 'ipo', 'service-status', 'etf-flows', 'stablecoins', 'markets-news', 'forex', 'bonds', 'crypto-news', 'defi-tokens', 'centralbanks', 'economic-news', 'macro-tiles', 'fear-greed', 'market-breadth', 'derivatives', 'fintech', 'fin-regulation', 'institutional', 'national-debt'],
+    avail: ['positioning-247', 'gold-silver', 'gulf-economies', 'gcc-investments', 'world-clock', 'unicorns', 'layoffs', 'funding', 'crypto-heatmap', 'ai-tokens', 'other-tokens', 'aaii-sentiment', 'analysis'],
   },
   'professional-liability': {
-    on: ['portfolio-exposure', 'map', 'live-news', 'live-webcams', 'ai', 'tech', 'security', 'policy', 'cloud', 'service-status', 'ai-regulation', 'fintech', 'fin-regulation'],
-    avail: ['world-clock', 'startups', 'accelerators', 'layoffs', 'hardware', 'dev', 'github', 'ipo', 'events', 'tech-readiness', 'tech-hubs', 'gov', 'disease-outbreaks', 'security-advisories'],
+    on: ['portfolio-exposure', 'map', 'live-news', 'live-webcams', 'ai', 'tech', 'security', 'policy', 'cloud', 'service-status', 'ai-regulation', 'fintech', 'fin-regulation', 'security-advisories'],
+    avail: ['world-clock', 'startups', 'accelerators', 'layoffs', 'hardware', 'dev', 'ipo', 'events', 'tech-readiness', 'tech-hubs', 'gov', 'disease-outbreaks'],
   },
   'environmental-liability': {
     on: ['portfolio-exposure', 'map', 'renewable', 'live-news', 'energy', 'mining-news', 'mining-companies', 'pipeline-status', 'energy-risk-overview', 'storage-facility-map', 'live-webcams', 'climate-news', 'population-exposure'],
