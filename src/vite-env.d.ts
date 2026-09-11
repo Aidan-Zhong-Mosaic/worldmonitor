@@ -13,6 +13,7 @@ interface Window {
 declare const __APP_VERSION__: string;
 declare const __BUILD_HASH__: string;
 declare const __CLERK_JS_VERSION__: string;
+declare const __MOSAIC_CONFIG_HASH__: string;
 
 interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN?: string;

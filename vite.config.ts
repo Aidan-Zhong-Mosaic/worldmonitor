@@ -3,6 +3,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 import type { OutputBundle } from 'rollup';
 import { resolve, dirname, extname } from 'path';
 import { mkdir, readFile, writeFile } from 'fs/promises';
+import { readFileSync } from 'fs';
+import { createHash } from 'crypto';
 import { brotliCompress } from 'zlib';
 import { promisify } from 'util';
 import pkg from './package.json';
@@ -911,6 +913,15 @@ export default defineConfig(({ mode }) => {
       // detects the marker and skips the comparison so dev tabs don't
       // reload on every focus.
       __BUILD_HASH__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev'),
+      // Fingerprint of the LOB panel/layer CSVs (via their generated module).
+      // App boot re-seeds panel + layer defaults when it differs from the one
+      // the browser last applied, so CSV edits reach existing users on deploy.
+      __MOSAIC_CONFIG_HASH__: JSON.stringify(
+        createHash('sha256')
+          .update(readFileSync(resolve(__dirname, 'src/config/mosaic/generated.ts')))
+          .digest('hex')
+          .slice(0, 16),
+      ),
     },
     plugins: [
       // Emit dist/build-hash.txt with the deployed SHA so the running bundle

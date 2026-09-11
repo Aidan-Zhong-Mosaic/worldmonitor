@@ -907,7 +907,14 @@ export class App {
     const currentVariant = SITE_VARIANT;
     let appliedPanelLayoutVariant: string | null = null;
     let storageAvailable = true;
+    // A deploy that changed the LOB CSVs re-seeds this LOB's defaults exactly
+    // like a LOB switch; otherwise saved panel prefs would keep shadowing the
+    // new on/off columns for anyone who has visited before.
+    const mosaicConfigHash = typeof __MOSAIC_CONFIG_HASH__ === 'string' ? __MOSAIC_CONFIG_HASH__ : null;
+    let mosaicConfigChanged = false;
     try {
+      mosaicConfigChanged = mosaicConfigHash !== null
+        && localStorage.getItem(STORAGE_KEYS.mosaicConfigHash) !== mosaicConfigHash;
       appliedPanelLayoutVariant = resolveAppliedPanelLayoutVariant({
         appliedVariant: localStorage.getItem(STORAGE_KEYS.panelLayoutVariant),
         legacyVariant: localStorage.getItem(STORAGE_KEYS.variant),
@@ -932,9 +939,9 @@ export class App {
         sanitizeLayersForVariant({ ...defaultLayers }, currentVariant as MapVariant), null,
       );
       panelSettings = getInitialPanelSettingsForVariant(currentVariant);
-    } else if (appliedPanelLayoutVariant !== currentVariant) {
+    } else if (appliedPanelLayoutVariant !== currentVariant || mosaicConfigChanged) {
       // Variant changed - reset all settings to variant defaults.
-      console.log(`[App] Variant check: applied="${appliedPanelLayoutVariant}", current="${currentVariant}"`);
+      console.log(`[App] Variant check: applied="${appliedPanelLayoutVariant}", current="${currentVariant}", mosaicConfigChanged=${mosaicConfigChanged}`);
       // Variant changed — seed new variant's panels, disable panels not in the new variant
       console.log('[App] Variant changed - seeding new defaults, disabling cross-variant panels');
       // Reset map layers for the new variant (map layers are not user-personalized the same way)
@@ -971,6 +978,7 @@ export class App {
           // marker — the "this layout is durable" flag — goes last.
           localStorage.setItem(STORAGE_KEYS.variant, variant);
           localStorage.setItem(STORAGE_KEYS.panelLayoutVariant, variant);
+          if (mosaicConfigHash !== null) localStorage.setItem(STORAGE_KEYS.mosaicConfigHash, mosaicConfigHash);
         },
       });
     } else {

@@ -108,6 +108,8 @@ export const STORAGE_KEYS = {
   sourceGateOwnership: 'worldmonitor-free-tier-source-ownership',
   mapLayerGateOwnership: 'worldmonitor-free-tier-layer-ownership',
   panelLayoutVariant: 'worldmonitor-panel-layout-variant',
+  // __MOSAIC_CONFIG_HASH__ of the LOB CSVs whose defaults were last applied.
+  mosaicConfigHash: 'worldmonitor-mosaic-config-hash',
   // Schema version for the disabledFeeds set. Bumped on each migration that
   // mutates the set in a backwards-incompatible way. Currently:
   //   missing/0 → pre-2026-05-01 alphabetical-cap state. Eligible for
