@@ -11,7 +11,7 @@ satellites,avail,avail,,,,,,
 cables,ON,ON,avail,,avail,avail,,
 pipelines,ON,,ON,avail,,,ON,avail
 datacenters,,ON,,avail,avail,ON,,avail
-military,ON,,avail,,,,,
+military,,,,,,,,
 ais,avail,,avail,,,,avail,avail
 tradeRoutes,avail,,ON,avail,avail,,,avail
 flights,avail,,,,,,,avail
@@ -21,7 +21,7 @@ displacement,avail,,ON,,,,avail,
 climate,,,avail,avail,,,ON,avail
 weather,,,,,,,ON,ON
 outages,avail,ON,avail,,ON,avail,,
-cyberThreats,avail,ON,avail,avail,ON,ON,,
+cyberThreats,,,,,,,,
 natural,,,avail,,,,ON,ON
 fires,,,,,,,ON,ON
 waterways,avail,,ON,avail,avail,,,avail
@@ -36,7 +36,7 @@ startupHubs,,,,ON,avail,avail,,
 techHQs,,avail,,ON,,ON,,
 accelerators,,,,avail,,avail,,
 cloudRegions,,ON,,avail,avail,ON,,
-techEvents,,,,avail,,avail,,
+techEvents,,,,,,,,
 stockExchanges,,avail,avail,ON,ON,avail,,
 financialCenters,,avail,avail,ON,ON,ON,,
 centralBanks,,,ON,avail,ON,,,
