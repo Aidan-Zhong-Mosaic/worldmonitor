@@ -56,9 +56,24 @@ export class PortfolioExposurePanel extends Panel {
       title: 'Portfolio Exposure',
       showCount: true,
       defaultRowSpan: 2,
-      infoTooltip: 'Policies in the book that current world events may touch. '
+      infoTooltip: 'Proof of concept: runs on a sample portfolio and a fixed set of demo events. '
+        + 'Policies in the book that current world events may touch. '
         + 'Matching runs locally against the portfolio; no policy data leaves your network.',
     });
+    // POC flag sits right after the title so it is visible even when the panel
+    // is collapsed or still loading.
+    this.header.querySelector('.panel-title')?.after(
+      h('span', { className: 'pxp-poc-badge', title: 'Proof of concept — demo data only' }, 'POC'),
+    );
+  }
+
+  /** Shown above every render state so nobody mistakes demo figures for the live book. */
+  private pocNotice(): HTMLElement {
+    return h('div', { className: 'pxp-poc-notice', role: 'note' },
+      h('strong', {}, 'Proof of concept.'),
+      ' Figures come from a sample portfolio and demo events, not the live book. '
+      + 'Do not use for underwriting decisions.',
+    );
   }
 
   /** Which line of business the header switcher currently has selected. */
@@ -134,7 +149,7 @@ export class PortfolioExposurePanel extends Panel {
     );
 
     if (cards.length === 0) {
-      replaceChildren(this.content, summary, h('div', { className: 'pxp-empty' },
+      replaceChildren(this.content, this.pocNotice(), summary, h('div', { className: 'pxp-empty' },
         'No exposure from the current event set.'));
       this.setSeverity('none');
       return;
@@ -158,7 +173,7 @@ export class PortfolioExposurePanel extends Panel {
       ),
     );
 
-    replaceChildren(this.content, summary, headline,
+    replaceChildren(this.content, this.pocNotice(), summary, headline,
       ...cards.map((card) => this.renderCard(card)));
 
     this.setSeverity(totalNet > 100_000_000 ? 'high' : totalNet > 25_000_000 ? 'medium' : 'low');

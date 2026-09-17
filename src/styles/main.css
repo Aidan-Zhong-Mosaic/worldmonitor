@@ -10113,6 +10113,35 @@ a.prediction-link:hover {
 }
 
 /* Portfolio Exposure panel — the Exposure Lens surface in the grid */
+.pxp-poc-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--yellow);
+  border: 1px solid color-mix(in srgb, var(--yellow) 45%, transparent);
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-left: 6px;
+  line-height: 1;
+  cursor: help;
+}
+
+.pxp-poc-notice {
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--yellow) 40%, transparent);
+  border-left-width: 3px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--yellow) 8%, transparent);
+  color: var(--text);
+  font-size: calc(10px * var(--wm-panel-effective-scale, 1));
+  line-height: 1.45;
+}
+
+.pxp-poc-notice strong { color: var(--yellow); }
+
 .pxp-summary {
   display: flex;
   justify-content: space-between;
