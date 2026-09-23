@@ -1,5 +1,5 @@
 /**
- * Exposure Lens — core pipeline (proof of concept).
+ * Exposure Lens — core pipeline.
  *
  * Turns a raw policy-extract row into a normalised record, joins it against a
  * world event using a matcher chosen by line of business, and produces the ONLY
@@ -12,6 +12,11 @@
  * Extending to a new line of business means adding one entry to MATCHERS and
  * declaring which `Class of Business` values it serves. Nothing else changes.
  */
+
+import { countryName, resolveTerritory, type TerritoryScope } from './territory-scopes';
+
+export { countryName };
+export type { TerritoryScope };
 
 // ---------------------------------------------------------------------------
 // 1. Field manifest — the auditable answer to "what leaves the building?"
@@ -41,7 +46,7 @@ export const FIELD_MANIFEST: readonly FieldRule[] = [
   { column: 'Class of Business',                    tier: 'context',   why: 'Selects which matcher runs. Political Violence, Political Risk, Cyber…' },
   { column: 'Class',                                tier: 'context',   why: 'The peril wording, e.g. War and Terrorism, Contract Frustration.' },
   { column: 'Lloyds Risk Code',                     tier: 'context',   why: 'Machine-readable peril codes. May be multi-valued.' },
-  { column: 'Territory',                            tier: 'context',   why: 'Territorial scope of cover. Free text in this extract — parsed, see parseTerritory.' },
+  { column: 'Territory',                            tier: 'context',   why: 'Territorial scope of cover. A controlled vocabulary in RBS — resolved via territory-scopes.ts.' },
   { column: 'Insured Domicile',                     tier: 'context',   why: 'Where the insured sits.' },
   { column: 'Insured State',                        tier: 'context',   why: 'Sub-national domicile.' },
   { column: 'Jurisdiction Country',                 tier: 'context',   why: 'Governing law.' },
@@ -91,97 +96,25 @@ export function readableColumns(): number { return FIELD_MANIFEST.filter((f) => 
 export function refusedColumns(): number { return FIELD_MANIFEST.filter((f) => f.tier === 'never').length; }
 
 // ---------------------------------------------------------------------------
-// 2. Territorial scope — the free-text field that has to become structured
+// 2. Territorial scope — looked up in a reviewed table, not parsed at runtime
 // ---------------------------------------------------------------------------
 
-export interface TerritoryScope {
+/**
+ * RBS territory is a controlled vocabulary (177 values), so each value is
+ * resolved once in territory-scopes.ts and looked up here. Country codes are
+ * ISO 3166-1 alpha-2 throughout — `WorldEvent.countries` uses them too.
+ */
+
+/** A resolved scope plus the raw RBS wording, kept for display. */
+export interface PolicyTerritory extends TerritoryScope {
   raw: string;
-  worldwide: boolean;
-  included: string[];
-  excluded: string[];
-  /** Phrases we recognised but did not turn into rules. Never silently dropped. */
-  caveats: string[];
-  /** True when the string was not fully understood — routes to review, not auto-surface. */
-  needsReview: boolean;
 }
 
-const COUNTRY_SYNONYMS: Record<string, string> = {
-  usa: 'United States', us: 'United States', 'u s a': 'United States',
-  'united states': 'United States', 'united states of america': 'United States',
-  uk: 'United Kingdom', 'united kingdom': 'United Kingdom',
-};
-
-function canonCountry(token: string): string | null {
-  const k = token.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
-  return COUNTRY_SYNONYMS[k] ?? null;
-}
-
-/**
- * Resolve the country at the END of a captured phrase.
- *
- * "with USA exclusions" captures "Worldwide with USA" before this: the country
- * is the trailing token, not the whole phrase. Walk suffixes shortest-last so
- * "United States" still beats "States".
- */
-function resolveTrailingCountry(token: string): string | null {
-  const words = token.trim().split(/\s+/).filter(Boolean);
-  for (let i = 0; i < words.length; i++) {
-    const hit = canonCountry(words.slice(i).join(' '));
-    if (hit) return hit;
-  }
-  return null;
-}
-
-/**
- * Parse the free-text Territory column into a scope the matcher can use.
- *
- * Real values look like "Worldwide with USA exclusions but no USA exposure".
- * That is prose, not data — so this parser handles the shapes we have seen and
- * flags anything else for review rather than guessing. In production this is
- * the natural place for the extraction model: same strict-schema contract,
- * reviewed once per distinct wording and then cached.
- */
-export function parseTerritory(raw: string | null): TerritoryScope {
-  const text = (raw ?? '').trim();
-  const scope: TerritoryScope = {
-    raw: text, worldwide: false, included: [], excluded: [], caveats: [], needsReview: false,
-  };
-  if (!text) { scope.needsReview = true; scope.caveats.push('Territory is blank'); return scope; }
-
-  const lower = text.toLowerCase();
-  scope.worldwide = /\bworldwide\b|\bglobal\b/.test(lower);
-
-  // "with USA exclusions", "excluding USA", "ex USA", "USA excluded"
-  const exclusionRe = /(?:excluding|excl\.?|ex\b|without)\s+([A-Za-z .]+?)(?=\s+(?:but|and|with|,)|$)|([A-Za-z .]+?)\s+(?:exclusions?|excluded)/gi;
-  let m: RegExpExecArray | null;
-  while ((m = exclusionRe.exec(text)) !== null) {
-    const token = (m[1] ?? m[2] ?? '').trim();
-    const country = resolveTrailingCountry(token);
-    if (country) { if (!scope.excluded.includes(country)) scope.excluded.push(country); }
-    else if (token) scope.caveats.push(`Unrecognised exclusion: "${token}"`);
-  }
-
-  // Underwriting statements of fact, e.g. "no USA exposure" — record, don't act on.
-  const noExposure = /no\s+([A-Za-z .]+?)\s+exposure/gi;
-  while ((m = noExposure.exec(text)) !== null) {
-    const country = resolveTrailingCountry((m[1] ?? '').trim());
-    if (country) scope.caveats.push(`Stated no ${country} exposure (underwriting statement, not a contractual exclusion)`);
-  }
-
-  if (!scope.worldwide && scope.included.length === 0) {
-    const country = resolveTrailingCountry(text);
-    if (country) scope.included.push(country);
-    else { scope.needsReview = true; scope.caveats.push(`Could not resolve territory to countries: "${text}"`); }
-  }
-  if (scope.caveats.some((c) => c.startsWith('Unrecognised'))) scope.needsReview = true;
-  return scope;
-}
-
-/** Does this policy's territorial scope cover the given country? */
-export function scopeCovers(scope: TerritoryScope, country: string): boolean {
-  if (scope.excluded.some((c) => c.toLowerCase() === country.toLowerCase())) return false;
+/** Does this scope cover the given country (ISO alpha-2)? Exclusions win. */
+export function scopeCovers(scope: TerritoryScope, code: string): boolean {
+  if (scope.excluded.includes(code)) return false;
   if (scope.worldwide) return true;
-  return scope.included.some((c) => c.toLowerCase() === country.toLowerCase());
+  return scope.included.includes(code);
 }
 
 // ---------------------------------------------------------------------------
@@ -196,7 +129,7 @@ export interface NormalizedPolicy {
   status: 'in-force' | 'not-bound';
   insuredName: string | null;
   obligor: string | null;
-  territory: TerritoryScope;
+  territory: PolicyTerritory;
   insuredDomicile: string | null;
   insuredState: string | null;
   jurisdiction: string | null;
@@ -281,9 +214,10 @@ export function normalizePolicy(row: Record<string, string>, ref: string): Norma
   const assumptions: string[] = [];
   const { inception, expiry } = deriveWindow(row, assumptions);
 
-  const territory = parseTerritory(str(row['Territory']));
+  const rawTerritory = str(row['Territory']) ?? '';
+  const territory: PolicyTerritory = { raw: rawTerritory, ...resolveTerritory(rawTerritory) };
   if (territory.needsReview) {
-    assumptions.push(`Territory "${territory.raw}" was not fully understood — routed to review rather than auto-surfaced.`);
+    assumptions.push(`Territory "${rawTerritory}" does not say where the cover applies — needs review.`);
   }
 
   const bound = /bound|signed/i.test(row['Policy Status'] ?? '')
@@ -343,14 +277,17 @@ export function parsePortfolioTsv(text: string): Record<string, string>[] {
 // ---------------------------------------------------------------------------
 
 export interface EntityAlias {
-  policyName: string; aliases: string[]; parent?: string; riskCountry?: string; confirmedBy?: string;
+  policyName: string; aliases: string[]; parent?: string;
+  /** ISO alpha-2 code of the obligor's controlling state. */
+  riskCountry?: string;
+  confirmedBy?: string;
 }
 
 export const ENTITY_ALIASES: EntityAlias[] = [
   {
     policyName: 'CFE International LLC',
     aliases: ['CFE International', 'CFEi', 'Comision Federal de Electricidad', 'Comisión Federal de Electricidad', 'CFE'],
-    parent: 'Comisión Federal de Electricidad', riskCountry: 'Mexico', confirmedBy: 'demo seed',
+    parent: 'Comisión Federal de Electricidad', riskCountry: 'MX', confirmedBy: 'demo seed',
   },
   {
     policyName: 'Willis Towers Watson Northeast, Inc',
@@ -392,7 +329,9 @@ export function resolveEntity(name: string | null, eventEntities: string[]): Ent
 export interface WorldEvent {
   id: string; headline: string; peril: string;
   triggersClasses: string[];
-  countries: string[]; entities: string[]; sectors: string[];
+  /** ISO 3166-1 alpha-2 codes, e.g. "NG" — the same codes territory scopes use. */
+  countries: string[];
+  entities: string[]; sectors: string[];
   occurredAt: string; sourceUrl: string; sourcePanel: string;
 }
 
@@ -447,17 +386,19 @@ export const territorialScopeMatcher: ExposureMatcher = {
   match(policy, event) {
     const reasons = baseGate(policy, event);
     const covered = event.countries.filter((c) => scopeCovers(policy.territory, c));
-    const excludedHits = event.countries.filter((c) =>
-      policy.territory.excluded.some((x) => x.toLowerCase() === c.toLowerCase()));
+    const excludedHits = event.countries.filter((c) => policy.territory.excluded.includes(c));
+    const names = (codes: string[]): string => codes.map(countryName).join(', ');
 
     reasons.push({
       test: 'Country within territorial scope',
       passed: covered.length > 0,
       detail: covered.length > 0
-        ? `${covered.join(', ')} covered by "${policy.territory.raw}"`
+        ? `${names(covered)} covered by "${policy.territory.raw}"`
         : excludedHits.length > 0
-          ? `${excludedHits.join(', ')} is contractually EXCLUDED by "${policy.territory.raw}"`
-          : `No event country falls inside "${policy.territory.raw}"`,
+          ? `${names(excludedHits)} is contractually EXCLUDED by "${policy.territory.raw}"`
+          : policy.territory.needsReview
+            ? `Territory "${policy.territory.raw}" does not say where cover applies`
+            : `No event country falls inside "${policy.territory.raw}"`,
     });
 
     const insuredHit = resolveEntity(policy.insuredName, event.entities);
@@ -476,9 +417,6 @@ export const territorialScopeMatcher: ExposureMatcher = {
     const limitations = [
       'No location schedule in this extract — matched on territorial scope, not on the insured\'s actual sites. A statement of values would allow a radius match against the event coordinates.',
     ];
-    if (policy.territory.needsReview) {
-      limitations.push(`Territory text "${policy.territory.raw}" was not fully parsed.`);
-    }
     for (const c of policy.territory.caveats) limitations.push(c);
 
     return { policy, matcher: this.id, matched, reasons, limitations };
@@ -502,15 +440,16 @@ export const obligorEntityMatcher: ExposureMatcher = {
     });
 
     const territoryHit = event.countries.some((c) => scopeCovers(policy.territory, c));
-    const riskCountryHit = Boolean(entityHit?.riskCountry
-      && event.countries.some((c) => norm(c) === norm(entityHit.riskCountry as string)));
+    const riskCountry = entityHit?.riskCountry ?? null;
+    const riskCountryHit = riskCountry !== null && event.countries.includes(riskCountry);
+    const riskCountryName = riskCountry ? countryName(riskCountry) : '';
     reasons.push({
       test: 'Country of risk',
       passed: territoryHit || riskCountryHit,
       detail: territoryHit
         ? `Event country inside "${policy.territory.raw}"`
         : riskCountryHit
-          ? `Event country matches the obligor's controlling state (${entityHit?.riskCountry}), not the policy Territory ("${policy.territory.raw}")`
+          ? `Event country matches the obligor's controlling state (${riskCountryName}), not the policy Territory ("${policy.territory.raw}")`
           : 'No country overlap',
     });
 

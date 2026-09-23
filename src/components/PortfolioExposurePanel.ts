@@ -5,7 +5,7 @@ import { h, replaceChildren } from '@/utils/dom-utils';
 import { revealPanel } from '@/utils/reveal-panel';
 import { track } from '@/services/analytics';
 import {
-  buildModelPayload, matchPolicy, matcherFor, normalizePolicy, parsePortfolioTsv,
+  buildModelPayload, countryName, matchPolicy, matcherFor, normalizePolicy, parsePortfolioTsv,
   type NormalizedPolicy, type PolicyMatch, type WorldEvent,
 } from '../../shared/exposure/exposure-core';
 import { DEMO_EVENTS } from '../../shared/exposure/demo-events';
@@ -219,7 +219,7 @@ export class PortfolioExposurePanel extends Panel {
       h('div', { className: 'pxp-card-meta' },
         h('span', {}, event.peril),
         h('span', { className: 'pxp-dot' }, '·'),
-        h('span', {}, event.countries.join(', ')),
+        h('span', {}, event.countries.map(countryName).join(', ')),
         h('span', { className: 'pxp-dot' }, '·'),
         h('span', {}, formatDate(event.occurredAt)),
       ),
