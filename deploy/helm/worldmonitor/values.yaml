@@ -1,0 +1,164 @@
+# Default values for worldmonitor. Override per-environment with
+# -f values-prod.yaml or --set on the CLI.
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Redis: runs in-cluster as its own pod, same as docker-compose.yml's
+# `redis` service (redis:7-alpine with --requirepass). The redis-rest shim
+# connects to it over the cluster-internal Service below.
+redis:
+  image:
+    repository: docker.io/redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+  port: 6379
+  maxMemory: 256mb
+  maxMemoryPolicy: allkeys-lru
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 384Mi
+  persistence:
+    size: 5Gi
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+  # REDIS_PASSWORD lives in the shared `secrets` Secret below (same as the
+  # original docker-compose.yml .env) - it's the password THIS redis pod is
+  # started with via --requirepass, not an externally-issued credential.
+
+app:
+  image:
+    repository: ""  # e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com/worldmonitor
+    tag: ""          # defaults to Chart.AppVersion if empty
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8080
+  service:
+    type: ClusterIP
+  probes:
+    path: /api/sidecar-health
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    failureThreshold: 3
+  resources:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      cpu: 750m
+      memory: 512Mi
+  # Non-secret config, becomes env vars on the app container.
+  config:
+    localApiPort: "46123"
+    localApiMode: "docker"
+    localApiCloudFallback: "false"
+    selfHostedUnlockPremium: "true"
+  # Replaces the manual nginx on the EC2 host that forwards 3443->8000
+  # today - this is a k8s Ingress, turned into a real AWS ALB by the AWS
+  # Load Balancer Controller (a one-time cluster addon, not part of this
+  # chart - see README-deploy.md). Requires that controller to be installed
+  # before enabling this; the Ingress resource does nothing on its own.
+  ingress:
+    enabled: false
+    className: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      # Plain HTTP for now (no domain yet, so no trusted cert to attach) -
+      # reachable at the ALB's own DNS name. Once you have a domain + an
+      # ACM certificate, add app.ingress.host below and switch this to:
+      #   alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+      #   alb.ingress.kubernetes.io/certificate-arn: <acm-cert-arn>
+      #   alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    # Left empty on purpose: no `host` means the Ingress rule matches any
+    # Host header, so it's reachable at the ALB's own address without
+    # owning a domain. Fill in once the team has one.
+    host: ""
+    tls: []
+
+aisRelay:
+  image:
+    repository: ""  # e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com/worldmonitor-ais-relay
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  port: 3004
+  probes:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    failureThreshold: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  config:
+    marketYahooRefreshIntervalMs: "900000"
+    upstashAllowInsecureHttp: "true"
+
+redisRest:
+  image:
+    repository: ""  # e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com/worldmonitor-redis-rest
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+# Application secrets (REDIS_PASSWORD, REDIS_TOKEN, RELAY_SHARED_SECRET,
+# LOCAL_API_TOKEN, and every optional third-party API key). All keys land in
+# one k8s Secret and are injected via envFrom, so key names here must match
+# the env var names the app expects exactly (see docker-compose.yml for the
+# full list).
+secrets:
+  existingSecret: ""
+  # Dev/quick-start only - see README-deploy.md. Do not fill these in and
+  # commit them; use --set-file or a local, gitignored values-secret.yaml.
+  create: false
+  values: {}
+  # values:
+  #   REDIS_PASSWORD: ""
+  #   REDIS_TOKEN: ""
+  #   RELAY_SHARED_SECRET: ""
+  #   LOCAL_API_TOKEN: ""
+  #   LLM_API_URL: ""
+  #   LLM_API_KEY: ""
+  #   LLM_MODEL: ""
+  #   GROQ_API_KEY: ""
+  #   GROQ_MODEL: ""
+  #   OPENROUTER_API_KEY: ""
+  #   OPENROUTER_MODEL: ""
+  #   AISSTREAM_API_KEY: ""
+  #   FINNHUB_API_KEY: ""
+  #   EIA_API_KEY: ""
+  #   FRED_API_KEY: ""
+  #   ACLED_EMAIL: ""
+  #   ACLED_PASSWORD: ""
+  #   ACLED_ACCESS_TOKEN: ""
+  #   NASA_FIRMS_API_KEY: ""
+  #   CLOUDFLARE_API_TOKEN: ""
+  #   AVIATIONSTACK_API: ""
+  #   TRAVELPAYOUTS_API_TOKEN: ""
+  #   UCDP_ACCESS_TOKEN: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

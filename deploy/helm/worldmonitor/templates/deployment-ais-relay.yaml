@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worldmonitor.componentFullname" (list . "ais-relay") }}
+  labels:
+    {{- include "worldmonitor.componentLabels" (list . "ais-relay") | nindent 4 }}
+spec:
+  replicas: {{ .Values.aisRelay.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worldmonitor.componentSelectorLabels" (list . "ais-relay") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worldmonitor.componentSelectorLabels" (list . "ais-relay") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "worldmonitor.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: ais-relay
+          image: "{{ .Values.aisRelay.image.repository }}:{{ .Values.aisRelay.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.aisRelay.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.aisRelay.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "worldmonitor.fullname" . }}-config
+            - secretRef:
+                name: {{ include "worldmonitor.secretName" . }}
+          env:
+            - name: PORT
+              value: {{ .Values.aisRelay.port | quote }}
+            # REDIS_TOKEN in the shared secret is the redis-rest shim's own
+            # bearer token, aliased here to the name the relay expects.
+            - name: UPSTASH_REDIS_REST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worldmonitor.secretName" . }}
+                  key: REDIS_TOKEN
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.aisRelay.probes.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.aisRelay.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.aisRelay.probes.periodSeconds }}
+            failureThreshold: {{ .Values.aisRelay.probes.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.aisRelay.probes.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.aisRelay.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.aisRelay.probes.periodSeconds }}
+            failureThreshold: {{ .Values.aisRelay.probes.failureThreshold }}
+          resources:
+            {{- toYaml .Values.aisRelay.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

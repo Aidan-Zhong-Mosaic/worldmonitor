@@ -1,0 +1,17 @@
+worldmonitor deployed to namespace {{ .Release.Namespace }}.
+
+Check rollout status:
+  kubectl -n {{ .Release.Namespace }} rollout status deployment/{{ include "worldmonitor.componentFullname" (list . "app") }}
+  kubectl -n {{ .Release.Namespace }} rollout status deployment/{{ include "worldmonitor.componentFullname" (list . "ais-relay") }}
+  kubectl -n {{ .Release.Namespace }} rollout status deployment/{{ include "worldmonitor.componentFullname" (list . "redis-rest") }}
+
+Port-forward the app and hit its health check:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "worldmonitor.componentFullname" (list . "app") }} 8080:{{ .Values.app.port }}
+  curl localhost:8080{{ .Values.app.probes.path }}
+
+{{- if not .Values.app.ingress.enabled }}
+
+app.ingress.enabled is false, so the app is only reachable inside the cluster
+(or via port-forward above). Set app.ingress.enabled: true with a host once
+you're ready to expose it.
+{{- end }}

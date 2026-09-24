@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "worldmonitor.componentFullname" (list . "ais-relay") }}
+  labels:
+    {{- include "worldmonitor.componentLabels" (list . "ais-relay") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.aisRelay.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "worldmonitor.componentSelectorLabels" (list . "ais-relay") | nindent 4 }}

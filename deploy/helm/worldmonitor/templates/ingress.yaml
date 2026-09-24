@@ -1,0 +1,37 @@
+{{- if .Values.app.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "worldmonitor.componentFullname" (list . "app") }}
+  labels:
+    {{- include "worldmonitor.componentLabels" (list . "app") | nindent 4 }}
+  {{- with .Values.app.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.app.ingress.className }}
+  ingressClassName: {{ .Values.app.ingress.className }}
+  {{- end }}
+  {{- with .Values.app.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    # No `host` field at all when app.ingress.host is unset - a rule with no
+    # host matches any incoming Host header, so this works by the load
+    # balancer's own address/DNS name with no domain required. Add
+    # app.ingress.host once you have one; no other change needed.
+    - {{- if .Values.app.ingress.host }}
+      host: {{ .Values.app.ingress.host | quote }}
+      {{- end }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "worldmonitor.componentFullname" (list . "app") }}
+                port:
+                  number: {{ .Values.app.port }}
+{{- end }}

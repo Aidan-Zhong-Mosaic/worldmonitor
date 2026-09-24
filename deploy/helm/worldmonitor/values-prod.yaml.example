@@ -1,0 +1,33 @@
+# Copy to values-prod.yaml (gitignored) and fill in, or pass the equivalent
+# via --set on the helm command line. Never commit a filled-in copy of this file.
+
+app:
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/worldmonitor"
+    tag: "latest"
+  replicaCount: 2
+  ingress:
+    enabled: true
+    # className/annotations/host: leave everything else at values.yaml's
+    # defaults until there's a domain - it already comes with sane ALB
+    # annotations for plain-HTTP, no-host access. Once there's a domain +
+    # ACM cert, add:
+    #   host: worldmonitor.example.com
+    # and swap the listen-ports/certificate-arn annotations per the
+    # comment in values.yaml.
+
+aisRelay:
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/worldmonitor-ais-relay"
+    tag: "latest"
+
+redisRest:
+  image:
+    repository: "123456789012.dkr.ecr.us-east-1.amazonaws.com/worldmonitor-redis-rest"
+    tag: "latest"
+
+# Pre-create this Secret yourself (see README-deploy.md) - do not set
+# secrets.create/values here. redis itself runs in-cluster (see values.yaml's
+# `redis` block) - nothing external to point it at.
+secrets:
+  existingSecret: worldmonitor-secrets

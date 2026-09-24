@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worldmonitor.componentFullname" (list . "redis-rest") }}
+  labels:
+    {{- include "worldmonitor.componentLabels" (list . "redis-rest") | nindent 4 }}
+spec:
+  replicas: {{ .Values.redisRest.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worldmonitor.componentSelectorLabels" (list . "redis-rest") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worldmonitor.componentSelectorLabels" (list . "redis-rest") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "worldmonitor.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redis-rest
+          image: "{{ .Values.redisRest.image.repository }}:{{ .Values.redisRest.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.redisRest.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.redisRest.port }}
+              protocol: TCP
+          # redis-rest-proxy.mjs reads one SRH_CONNECTION_STRING env var, but
+          # the host:port is only known at template time and the password is
+          # a Secret - k8s env vars can't interpolate one into the other the
+          # way docker-compose.yml's `${REDIS_PASSWORD}` substitution did, so
+          # this composes it in a shell wrapper before exec'ing the proxy.
+          command:
+            - sh
+            - -c
+            - >-
+              export SRH_CONNECTION_STRING="redis://:${REDIS_PASSWORD}@{{ include "worldmonitor.componentFullname" (list . "redis") }}:{{ .Values.redis.port }}";
+              exec node redis-rest-proxy.mjs
+          env:
+            - name: PORT
+              value: {{ .Values.redisRest.port | quote }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worldmonitor.secretName" . }}
+                  key: REDIS_PASSWORD
+            # REDIS_TOKEN in the shared secret is this shim's own bearer
+            # token, aliased here to the name it expects.
+            - name: SRH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worldmonitor.secretName" . }}
+                  key: REDIS_TOKEN
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.redisRest.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
