@@ -22,9 +22,9 @@ just on Kubernetes. `redis-rest` (the Upstash REST shim) runs alongside it.
 
 2. Create the Secret out-of-band (never through Helm values):
    ```bash
-   kubectl create namespace worldmonitor
+   kubectl create namespace mosaic-ai   # skip if it already exists - shared with the other services
 
-   kubectl -n worldmonitor create secret generic worldmonitor-secrets \
+   kubectl -n mosaic-ai create secret generic worldmonitor-secrets \
      --from-literal=REDIS_PASSWORD="$(openssl rand -hex 32)" \
      --from-literal=REDIS_TOKEN="$(openssl rand -hex 32)" \
      --from-literal=RELAY_SHARED_SECRET="$(openssl rand -hex 32)" \
@@ -52,7 +52,7 @@ just on Kubernetes. `redis-rest` (the Upstash REST shim) runs alongside it.
    domain needed yet; see the comment on `app.ingress` in `values.yaml`).
    Once deployed, find the ALB's address with:
    ```bash
-   kubectl -n worldmonitor get ingress
+   kubectl -n mosaic-ai get ingress
    ```
    and point whatever currently hits `:3443` at that address instead -
    then the EC2-host nginx can be decommissioned.
@@ -61,21 +61,21 @@ just on Kubernetes. `redis-rest` (the Upstash REST shim) runs alongside it.
 
 ```bash
 helm upgrade --install worldmonitor ./worldmonitor \
-  -n worldmonitor --create-namespace \
+  -n mosaic-ai --create-namespace \
   -f worldmonitor/values-prod.yaml
 ```
 
 ## Verify
 
 ```bash
-kubectl -n worldmonitor get pods
-kubectl -n worldmonitor port-forward svc/worldmonitor-worldmonitor-app 8080:8080
+kubectl -n mosaic-ai get pods -l app.kubernetes.io/instance=worldmonitor
+kubectl -n mosaic-ai port-forward svc/worldmonitor-worldmonitor-app 8080:8080
 curl localhost:8080/api/sidecar-health
 ```
 
 ## Rollback
 
 ```bash
-helm -n worldmonitor history worldmonitor
-helm -n worldmonitor rollback worldmonitor <revision>
+helm -n mosaic-ai history worldmonitor
+helm -n mosaic-ai rollback worldmonitor <revision>
 ```

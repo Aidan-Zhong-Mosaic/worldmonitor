@@ -9,7 +9,7 @@
  * which queries it via Trino. SERVER-SIDE ONLY, like rbs-mcp-client.ts.
  */
 
-import type { RbsMcpClient } from './rbs-mcp-client';
+import type { McpToolResult, RbsMcpClient } from './rbs-mcp-client';
 
 export const POLICY_BOOK_COLUMNS = [
   // identity and grain: one row is a policy line per carrier
@@ -53,6 +53,8 @@ export interface PolicyBook {
   /** RBS snapshot date, MAX(run_date). The panel shows it as the book date. */
   runDate: string | null;
   rows: RbsPolicyRow[];
+  /** True when `pages` cut the read short, so this is not the whole book. */
+  truncated: boolean;
 }
 
 /** The MCP server returns at most 100 rows per call, so the book is read in pages of this size. */
@@ -104,25 +106,102 @@ export function policyBookTableFromEnv(env: Record<string, string | undefined> =
 
 /**
  * THE one function that reads RBS. Everything downstream depends only on its
- * return type, so the rest of Exposure Lens can be built and tested without it.
+ * return type.
  *
- * Not wired yet. To finish it, confirm with the MCP server's owners:
- *   1. the Trino name of the table (catalog.schema.table), for EXPOSURE_RBS_TABLE
- *   2. what a trino_execute_sql result looks like (JSON rows, or a text table?)
- *   3. whether the 100-row cap can be raised for a daily bulk read
+ * Reads the snapshot date, then pages through the book: the MCP server returns
+ * at most PAGE_SIZE rows per call, so it asks for page 0, 1, 2 … until a page
+ * comes back short. With a one-year lookback that is roughly 127 calls.
  *
- * The plan once those are known: run buildRunDateSql, then pages 0, 1, 2 … of
- * buildPolicyBookPageSql through trino_execute_sql until a page returns fewer
- * than PAGE_SIZE rows. With a one-year lookback that is about 127 calls a day.
+ * Only columns in POLICY_BOOK_COLUMNS are kept, whatever the server sends.
+ *
+ * `pages` deliberately reads only the first N pages, for a quick check; the
+ * result then says `truncated: true`. `maxPages` is the runaway guard: reaching
+ * it is an error, never a silent partial book.
  */
 export async function readPolicyBook(
-  _client: RbsMcpClient,
-  _options: { table: string; expiredOnOrAfter: string },
+  client: RbsMcpClient,
+  { table, expiredOnOrAfter, pages, maxPages = 500 }: {
+    table: string; expiredOnOrAfter: string; pages?: number; maxPages?: number;
+  },
 ): Promise<PolicyBook> {
-  throw new Error('readPolicyBook is not wired yet — see the note above it in server/_shared/exposure/policy-book.ts');
+  const runDate = await readRunDate(client, table);
+  const rows: RbsPolicyRow[] = [];
+
+  const stopAfter = pages ?? maxPages;
+  for (let page = 0; page < stopAfter; page++) {
+    const sql = buildPolicyBookPageSql({ table, expiredOnOrAfter, page });
+    const result = parseSqlResult(await client.callTool('trino_execute_sql', { sql }), `page ${page}`);
+    assertContractColumns(result.columns);
+    const batch = result.rows ?? [];
+    for (const raw of batch) rows.push(toPolicyRow(raw));
+    if (batch.length < PAGE_SIZE) return { runDate, rows, truncated: false };
+  }
+  if (pages !== undefined) return { runDate, rows, truncated: true };
+  throw new Error(`Stopped after ${maxPages} pages (${rows.length} rows): the book is larger than expected`);
 }
 
-function assertTable(table: string): void {
+async function readRunDate(client: RbsMcpClient, table: string): Promise<string | null> {
+  const result = parseSqlResult(await client.callTool('trino_execute_sql', { sql: buildRunDateSql(table) }), 'run date');
+  const value = result.rows?.[0]?.run_date;
+  return typeof value === 'string' || typeof value === 'number' ? String(value) : null;
+}
+
+interface SqlResult {
+  columns?: string[];
+  rows?: Array<Record<string, unknown>>;
+}
+
+/**
+ * trino_execute_sql answers with {"columns":[…],"rows":[{…}],"row_count":n},
+ * either as structured content or as JSON in a text block.
+ */
+function parseSqlResult(result: McpToolResult, what: string): SqlResult {
+  if (result.isError) {
+    throw new Error(`Query failed (${what}): ${textOf(result) ?? 'no detail given'}`);
+  }
+  if (isSqlResult(result.structuredContent)) return result.structuredContent;
+
+  const text = textOf(result);
+  if (!text) throw new Error(`Query returned nothing readable (${what})`);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`Query did not return JSON (${what}): ${text.slice(0, 120)}`);
+  }
+  if (!isSqlResult(parsed)) throw new Error(`Query returned no rows array (${what})`);
+  return parsed;
+}
+
+function textOf(result: McpToolResult): string | null {
+  return result.content?.find((b) => b.type === 'text' && typeof b.text === 'string')?.text ?? null;
+}
+
+function isSqlResult(value: unknown): value is SqlResult {
+  return typeof value === 'object' && value !== null && Array.isArray((value as SqlResult).rows);
+}
+
+/** Fail loudly if the table stops returning what the contract asks for. */
+function assertContractColumns(columns: string[] | undefined): void {
+  if (!columns) return;
+  const expected = POLICY_BOOK_COLUMNS.map((c) => c.column);
+  const missing = expected.filter((c) => !columns.includes(c));
+  if (missing.length > 0) throw new Error(`Columns missing from the result: ${missing.join(', ')}`);
+}
+
+/** Keep only contract columns, so nothing outside it ever reaches the rest of the app. */
+function toPolicyRow(raw: Record<string, unknown>): RbsPolicyRow {
+  const row = {} as Record<string, string | number | null>;
+  for (const { column } of POLICY_BOOK_COLUMNS) {
+    const value = raw[column];
+    row[column] = value === null || value === undefined ? null
+      : typeof value === 'string' || typeof value === 'number' ? value
+      : String(value);
+  }
+  return row as RbsPolicyRow;
+}
+
+export function assertTable(table: string): void {
   if (!TABLE_NAME.test(table)) {
     throw new Error(`Not a valid Trino table name (expected catalog.schema.table): "${table}"`);
   }

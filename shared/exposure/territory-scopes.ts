@@ -258,6 +258,16 @@ export function resolveTerritory(raw: string | null | undefined): TerritoryScope
     ?? unresolved(`Territory "${key}" is not in the reviewed list — add it to TERRITORY_SCOPES`);
 }
 
+/**
+ * Does this scope cover the given country (ISO alpha-2)? Exclusions win, so a
+ * worldwide wording that carves out the USA does not cover "US".
+ */
+export function scopeCovers(scope: TerritoryScope, code: string): boolean {
+  if (scope.excluded.includes(code)) return false;
+  if (scope.worldwide) return true;
+  return scope.included.includes(code);
+}
+
 const REGION_NAMES: Intl.DisplayNames | null =
   typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function'
     ? new Intl.DisplayNames(['en'], { type: 'region' })

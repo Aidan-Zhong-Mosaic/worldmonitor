@@ -13,9 +13,9 @@
  * declaring which `Class of Business` values it serves. Nothing else changes.
  */
 
-import { countryName, resolveTerritory, type TerritoryScope } from './territory-scopes';
+import { countryName, resolveTerritory, scopeCovers, type TerritoryScope } from './territory-scopes';
 
-export { countryName };
+export { countryName, scopeCovers };
 export type { TerritoryScope };
 
 // ---------------------------------------------------------------------------
@@ -110,12 +110,7 @@ export interface PolicyTerritory extends TerritoryScope {
   raw: string;
 }
 
-/** Does this scope cover the given country (ISO alpha-2)? Exclusions win. */
-export function scopeCovers(scope: TerritoryScope, code: string): boolean {
-  if (scope.excluded.includes(code)) return false;
-  if (scope.worldwide) return true;
-  return scope.included.includes(code);
-}
+
 
 // ---------------------------------------------------------------------------
 // 3. Normalisation
