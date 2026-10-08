@@ -19,7 +19,7 @@ services:
     image: worldmonitor:latest
     container_name: worldmonitor
     ports:
-      - "${WM_PORT:-3000}:8080"
+      - "127.0.0.1:${WM_PORT:-3000}:8080"
     environment:
       UPSTASH_REDIS_REST_URL: "http://redis-rest:80"
       UPSTASH_REDIS_REST_TOKEN: "${REDIS_TOKEN:?REDIS_TOKEN required — generate with: openssl rand -hex 32}"
