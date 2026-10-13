@@ -1,0 +1,21 @@
+# Real deployment values - gitignored, not committed.
+
+app:
+  image:
+    repository: "481781217475.dkr.ecr.eu-west-1.amazonaws.com/worldmonitor"
+    tag: "latest"
+  replicaCount: 2
+  # Ingress left off for now - internal-only until a domain is decided.
+
+aisRelay:
+  image:
+    repository: "481781217475.dkr.ecr.eu-west-1.amazonaws.com/worldmonitor-ais-relay"
+    tag: "latest"
+
+redisRest:
+  image:
+    repository: "481781217475.dkr.ecr.eu-west-1.amazonaws.com/worldmonitor-redis-rest"
+    tag: "latest"
+
+secrets:
+  existingSecret: worldmonitor-secrets
