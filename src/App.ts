@@ -2146,7 +2146,8 @@ export class App {
     this.eventHandlers.setupStatusPanel();
     this.eventHandlers.setupPizzIntIndicator();
     this.eventHandlers.setupLlmStatusIndicator();
-    this.eventHandlers.setupExportPanel();
+    // setupExportPanel() is intentionally not mounted: the header export button
+    // is removed for this deployment. The method and ExportPanel stay in place.
     this.eventHandlers.setupSummarizePageButton();
     this.eventHandlers.setupSearchControls();
 

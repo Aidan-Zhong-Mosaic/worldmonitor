@@ -23,6 +23,12 @@ COPY . .
 # Output is api/**/*.js alongside the source .ts files
 RUN node docker/build-handlers.mjs
 
+# No-login mode, client half. Vite bakes VITE_* into the bundle at build time,
+# so set it here instead of relying on a .env file being in the build context.
+# Opt out with --build-arg VITE_SELF_HOSTED_UNLOCK_PREMIUM=false.
+ARG VITE_SELF_HOSTED_UNLOCK_PREMIUM=true
+ENV VITE_SELF_HOSTED_UNLOCK_PREMIUM=${VITE_SELF_HOSTED_UNLOCK_PREMIUM}
+
 # Build the crawlable static corpus and Vite frontend (outputs to dist/)
 # Skip blog build — blog-site has its own deps not installed here
 # generate:mosaic first so the LOB CSVs, not a stale generated.ts, decide panels
@@ -83,6 +89,11 @@ RUN chmod +x /app/entrypoint.sh
 RUN chown -R appuser:appgroup /app /tmp/nginx-client-body /tmp/nginx-proxy \
     /tmp/nginx-fastcgi /tmp/nginx-uwsgi /tmp/nginx-scgi /var/log/supervisor \
     /var/lib/nginx /var/log/nginx
+
+# No-login mode, server half (read per request). docker-compose or Helm env
+# still overrides this default. Access control must come from the surrounding
+# network or portal: with this set the API answers premium RPCs without auth.
+ENV SELF_HOSTED_UNLOCK_PREMIUM=true
 
 USER appuser
 

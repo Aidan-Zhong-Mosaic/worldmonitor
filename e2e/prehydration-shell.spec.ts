@@ -228,18 +228,7 @@ test.describe('pre-hydration dashboard shell', () => {
       await expect(page.locator('.header')).toBeVisible({ timeout: 30000 });
       await expect(page.locator('.skeleton-shell')).toHaveCount(0);
       await expect(page.locator('body > h1.app-heading')).toContainText('World Monitor');
-      for (const href of [
-        '/countries/',
-        '/chokepoints/',
-        '/crises/',
-        '/tools/',
-        '/pro#pricing',
-        'https://www.worldmonitor.app/blog/',
-        'https://www.worldmonitor.app/docs',
-        'https://github.com/koala73/worldmonitor',
-      ]) {
-        await expect(page.locator(`.site-footer nav a[href="${href}"]`)).toHaveCount(1);
-      }
+      await expect(page.locator('.site-footer')).toHaveCount(0);
       for (const href of ['/countries/', '/chokepoints/', '/crises/', '/tools/']) {
         await expect(page.locator(`.mobile-menu-footer-links a[href="${href}"]`)).toHaveCount(1);
       }

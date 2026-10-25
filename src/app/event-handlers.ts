@@ -593,7 +593,6 @@ export class EventHandlerManager implements AppModule {
     });
 
     this.initDownloadDropdown();
-    this.initFooterDownload();
 
     this.boundStorageHandler = (e: StorageEvent) => {
       if (e.key === STORAGE_KEYS.panels && e.newValue) {
@@ -1464,28 +1463,6 @@ export class EventHandlerManager implements AppModule {
       if (e.key === 'Escape') dropdown.classList.remove('open');
     };
     document.addEventListener('keydown', this.boundDropdownKeydownHandler);
-  }
-
-  private initFooterDownload(): void {
-    const mount = document.getElementById('footerDownloadMount');
-    if (!mount) return;
-    const platform = detectPlatform();
-    const primary = buttonsForPlatform(platform);
-    const btn = primary[0];
-    if (!btn) return;
-    const a = document.createElement('a');
-    a.href = btn.href;
-    a.textContent = t('header.downloadApp');
-    a.className = 'site-footer-download-link';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const plat = new URL(btn.href, location.origin).searchParams.get('platform') || 'unknown';
-      trackDownloadClicked(plat);
-      window.open(btn.href, '_blank', 'noopener,noreferrer');
-    });
-    mount.replaceWith(a);
   }
 
   private setCopyLinkFeedback(button: HTMLElement | null, message: string): void {

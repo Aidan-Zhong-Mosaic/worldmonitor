@@ -268,11 +268,11 @@ test.describe('mobile primary navigation (#5201 P0)', () => {
 });
 
 test.describe('desktop navigation parity (#5201 P0)', () => {
-  test('keeps the existing footer and does not expose the mobile tab bar', async ({ page }) => {
+  test('renders no footer and does not expose the mobile tab bar', async ({ page }) => {
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('html')).toHaveAttribute('data-wm-event-handlers-ready', 'true', { timeout: 45_000 });
     await expect(page.locator('#mobileTabBar')).toBeHidden();
-    await expect(page.locator('.site-footer')).toBeVisible();
+    await expect(page.locator('.site-footer')).toHaveCount(0);
     await expect(page.locator('#mapSection')).not.toHaveClass(/collapsed/);
   });
 });

@@ -54,7 +54,7 @@ describe('external navigation call-site contract (#6120)', () => {
     const ALLOWED_WINDOW_OPEN = new Map([
       ['src/components/Panel.ts', 1], //            web checkout fallback
       ['src/components/ResilienceWidget.ts', 2], // web upgrade fallbacks
-      ['src/app/event-handlers.ts', 2], //          download-banner links
+      ['src/app/event-handlers.ts', 1], //          download-banner link
       ['src/app/desktop-updater.ts', 1], //         non-desktop update link
       ['src/settings-main.ts', 0],
       ['src/components/RuntimeConfigPanel.ts', 0],
