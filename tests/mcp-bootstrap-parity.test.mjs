@@ -38,6 +38,9 @@ const { TOOL_REGISTRY } = mcpTesting;
 // -----------------------------------------------------------------------------
 const EXCLUDED_FROM_MCP = new Map([
 
+  ['cyber:kaspersky-stats:v1',
+    'deployment-local: Kaspersky KSN country attack-rate stats backing the Cyber Threat Landscape panel only; upstream is an undocumented, unlicensed public feed, so it is not re-exposed through MCP until terms are cleared.'],
+
   // ===========================================================================
   // #4920 completeness-measurement ops keys (pipeline health, not content)
   // ===========================================================================

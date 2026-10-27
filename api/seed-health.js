@@ -77,6 +77,7 @@ const SEED_DOMAINS = {
   // Phase 2 — Parameterized endpoints
   'unrest:events':            { key: 'seed-meta:unrest:events',            intervalMin: 15 },
   'cyber:threats':            { key: 'seed-meta:cyber:threats',            intervalMin: 240 },
+  'cyber:kaspersky-stats':    { key: 'seed-meta:cyber:kaspersky-stats',    intervalMin: 1440 }, // intervalMin = maxStaleMin / 2
   'market:crypto':            { key: 'seed-meta:market:crypto',            intervalMin: 15 },
   'market:hyperliquid-flow':  { key: 'seed-meta:market:hyperliquid-flow',  intervalMin: 5 }, // Railway cron 5min via seed-bundle-market-backup
   'market:etf-flows':         { key: 'seed-meta:market:etf-flows',         intervalMin: 30 },

@@ -76,6 +76,7 @@ import type { StrategicRiskPanel } from '@/components/StrategicRiskPanel';
 import type { GulfEconomiesPanel } from '@/components/GulfEconomiesPanel';
 import type { GroceryBasketPanel } from '@/components/GroceryBasketPanel';
 import type { BigMacPanel } from '@/components/BigMacPanel';
+import type { KasperskyCyberPanel } from '@/components/KasperskyCyberPanel';
 import type { FuelPricesPanel } from '@/components/FuelPricesPanel';
 import type { FxPanel } from '@/components/FxPanel';
 import type { FaoFoodPriceIndexPanel } from '@/components/FaoFoodPriceIndexPanel';
@@ -706,6 +707,10 @@ export class App {
     if (shouldPrime('bigmac')) {
       const panel = this.state.panels['bigmac'] as BigMacPanel | undefined;
       if (panel) primeTask('bigmac', () => panel.fetchData());
+    }
+    if (shouldPrime('kaspersky-cyber')) {
+      const panel = this.state.panels['kaspersky-cyber'] as KasperskyCyberPanel | undefined;
+      if (panel) primeTask('kaspersky-cyber', () => panel.fetchData());
     }
     if (shouldPrime('fuel-prices')) {
       const panel = this.state.panels['fuel-prices'] as FuelPricesPanel | undefined;
@@ -3223,6 +3228,13 @@ export class App {
       () => (this.state.panels['bigmac'] as BigMacPanel).fetchData(),
       REFRESH_INTERVALS.groceryBasket,
       () => this.isPanelNearViewport('bigmac')
+    );
+
+    this.refreshScheduler.scheduleRefresh(
+      'kaspersky-cyber',
+      () => (this.state.panels['kaspersky-cyber'] as KasperskyCyberPanel).fetchData(),
+      REFRESH_INTERVALS.kasperskyCyber,
+      () => this.isPanelNearViewport('kaspersky-cyber')
     );
 
     this.refreshScheduler.scheduleRefresh(

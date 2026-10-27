@@ -148,6 +148,7 @@ displacement,ON,,ON,,,,,
 climate-news,,,ON,,,,ON,avail
 population-exposure,ON,,,,,,ON,ON
 security-advisories,,ON,,,,ON,,
+kaspersky-cyber,,ON,,,avail,avail,,
 defense-patents,,,,,,,,
 radiation-watch,,,,,,,,
 thermal-escalation,,,,,,,,

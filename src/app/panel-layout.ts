@@ -2319,6 +2319,9 @@ export class PanelLayoutManager implements AppModule {
     this.lazyPanel('bigmac', () =>
       this.importPanel('bigmac', () => import('@/components/BigMacPanel'), 'BigMacPanel', (BigMacPanel) => new BigMacPanel()),
     );
+    this.lazyPanel('kaspersky-cyber', () =>
+      this.importPanel('kaspersky-cyber', () => import('@/components/KasperskyCyberPanel'), 'KasperskyCyberPanel', (KasperskyCyberPanel) => new KasperskyCyberPanel()),
+    );
     this.lazyPanel('fx', () =>
       this.importPanel('fx', () => import('@/components/FxPanel'), 'FxPanel', (FxPanel) => new FxPanel()),
     );

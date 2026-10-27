@@ -50,6 +50,7 @@ export const BOOTSTRAP_CACHE_KEYS = Object.freeze({
   crossSourceSignals: 'intelligence:cross-source-signals:v1',
   wildfires: 'wildfire:fires-bootstrap:v1',
   cyberThreats: 'cyber:threats-bootstrap:v2',
+  kasperskyCyberStats: 'cyber:kaspersky-stats:v1',
   techReadiness: 'economic:worldbank-techreadiness:v1',
   progressData: 'economic:worldbank-progress:v1',
   renewableEnergy: 'economic:worldbank-renewable:v1',
@@ -181,6 +182,9 @@ const FAST_KEY_NAMES = new Set([
 
 const ON_DEMAND_KEY_NAMES = new Set([
   'cyberThreats',
+  // Backs the opt-in Kaspersky cyber landscape panel; ~70KB, so it is fetched
+  // per-key on render rather than riding a tier every visitor downloads.
+  'kasperskyCyberStats',
   'chinaPolicyEvents', 'chinaDecisionSignals',
   'bisDsr', 'bisPropertyResidential', 'bisPropertyCommercial',
   // One row of this feeds the Central Banks tab's policy-rate list, which BIS

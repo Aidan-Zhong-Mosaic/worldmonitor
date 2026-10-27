@@ -170,6 +170,7 @@ export const COMMANDS: Command[] = [
   { id: 'panel:displacement', keywords: ['displacement', 'refugees', 'unhcr', 'idp'], label: 'Panel: UNHCR Displacement', icon: '\u{1F3C3}', category: 'panels' },
   { id: 'panel:climate', keywords: ['climate', 'climate anomalies', 'temperature', 'weather patterns'], label: 'Panel: Climate Anomalies', icon: '\u{1F321}\uFE0F', category: 'panels' },
   { id: 'panel:population-exposure', keywords: ['population', 'exposure', 'population exposure', 'affected population'], label: 'Panel: Population Exposure', icon: '\u{1F465}', category: 'panels' },
+  { id: 'panel:kaspersky-cyber', keywords: ['kaspersky', 'cyber map', 'cyberthreat', 'malware', 'ransomware', 'most attacked countries'], label: 'Panel: Cyber Threat Landscape', icon: '\u{1F6E1}', category: 'panels' },
   { id: 'panel:security-advisories', keywords: ['advisories', 'travel advisory', 'security advisory', 'travel warning'], label: 'Panel: Security Advisories', icon: '\u{1F6C2}', category: 'panels' },
   { id: 'panel:oref-sirens', keywords: ['sirens', 'oref', 'israel sirens', 'red alert', 'iron dome'], label: 'Panel: Israel Sirens', icon: '\u{1F6A8}', category: 'panels' },
   { id: 'panel:telegram-intel', keywords: ['telegram', 'telegram intel', 'osint'], label: 'Panel: Telegram Intel', icon: '\u{1F4E8}', category: 'panels' },

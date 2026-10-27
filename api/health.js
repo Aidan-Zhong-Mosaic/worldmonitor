@@ -202,6 +202,7 @@ const BOOTSTRAP_KEYS = {
   marketQuotes:      'market:stocks-bootstrap:v1',
   commodityQuotes:   'market:commodities-bootstrap:v1',
   cyberThreats:      'cyber:threats-bootstrap:v2',
+  kasperskyCyberStats: 'cyber:kaspersky-stats:v1',
   techReadiness:     'economic:worldbank-techreadiness:v1',
   progressData:      'economic:worldbank-progress:v1',
   renewableEnergy:   'economic:worldbank-renewable:v1',
@@ -534,6 +535,7 @@ const SEED_META = {
   climateNews:      { key: 'seed-meta:climate:news-intelligence', maxStaleMin: 90 }, // relay loop every 30min; 90 = 3× interval
   unrestEvents:     { key: 'seed-meta:unrest:events',           maxStaleMin: 120 }, // 45min cron; 120 = 2h grace (was 75 = 30min buffer, too tight)
   cyberThreats:     { key: 'seed-meta:cyber:threats',           maxStaleMin: 240 }, // 2h interval; 240min = 2x interval
+  kasperskyCyberStats: { key: 'seed-meta:cyber:kaspersky-stats', maxStaleMin: 2880 }, // 3h host cron, upstream rolls daily; 2880min = 2 days
   cryptoQuotes:     { key: 'seed-meta:market:crypto',           maxStaleMin: 30 },
   etfFlows:         { key: 'seed-meta:market:etf-flows',        maxStaleMin: 60 },
   gulfQuotes:       { key: 'seed-meta:market:gulf-quotes',      maxStaleMin: 30 },

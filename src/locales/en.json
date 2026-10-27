@@ -446,6 +446,7 @@
     "groceryBasket": "Grocery Index",
     "groceryItem": "Item",
     "bigmac": "Real Big Mac Index",
+    "kasperskyCyber": "Cyber Threat Landscape",
     "bigmacDesc": "Big Mac prices across Middle East countries (Big Mac Index)",
     "bigmacWow": "WoW",
     "bigmacCountry": "Country",
@@ -2013,6 +2014,9 @@
     },
     "groceryBasket": {
       "infoTooltip": "<strong>Grocery Index</strong> Global grocery basket price comparison across 24 countries — tracks real-world consumer goods inflation beyond headline CPI."
+    },
+    "kasperskyCyber": {
+      "infoTooltip": "<strong>Cyber Threat Landscape</strong> Weekly country rankings from the Kaspersky Cyberthreat Real-Time Map: the share of Kaspersky Security Network users in each country who hit a detection, per detection type (local infections, web threats, intrusions, ransomware, spam). Includes the global 7-day detection trend and top malware families. Telemetry reflects the Kaspersky install base, so countries with low Kaspersky adoption (e.g. the US) under-report, and small countries can rank high on small samples."
     },
     "bigmac": {
       "infoTooltip": "<strong>Real Big Mac Index</strong> The Economist's Big Mac Index measures purchasing power parity by comparing McDonald's burger prices across countries. Updated when new data is published (quarterly/annually)."

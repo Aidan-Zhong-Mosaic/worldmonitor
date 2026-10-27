@@ -52,6 +52,7 @@ export const REFRESH_INTERVALS = {
   telegramIntel: 60 * 1000,
   gulfEconomies: 10 * 60 * 1000,
   groceryBasket: 6 * 60 * 60 * 1000,
+  kasperskyCyber: 3 * 60 * 60 * 1000,
   fuelPrices: 6 * 60 * 60 * 1000,
   fx: 6 * 60 * 60 * 1000, // all three FX keys are daily seeds; 6h picks up the new bar without polling a static payload
 

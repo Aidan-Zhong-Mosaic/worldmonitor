@@ -3855,3 +3855,33 @@ a.hub-top-story {
   color: var(--negative, #f87171);
   opacity: 0.85;
 }
+/* Kaspersky cyber threat landscape panel */
+.kc-wrapper { display: flex; flex-direction: column; gap: 8px; font-size: calc(0.75rem * var(--wm-panel-effective-scale, 1)); }
+.kc-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.kc-subsystem { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; font-size: inherit; }
+.kc-period { color: var(--text-dim); }
+.kc-section-title { color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85em; margin-top: 4px; }
+.kc-trend { border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 8px; }
+.kc-trend-head { display: flex; justify-content: space-between; color: var(--text-secondary); }
+.kc-trend-head strong { color: var(--text); }
+.kc-up { color: var(--semantic-critical); }
+.kc-down { color: var(--semantic-normal); }
+.kc-spark { display: flex; align-items: flex-end; gap: 4px; height: 48px; margin-top: 6px; }
+.kc-spark-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.kc-spark-bar { width: 100%; background: var(--accent); opacity: 0.75; border-radius: 2px 2px 0 0; }
+.kc-spark-label { color: var(--text-faint); font-size: 0.8em; margin-top: 2px; }
+.kc-table { width: 100%; border-collapse: collapse; }
+.kc-table td { padding: 3px 4px; border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
+.kc-rank { color: var(--text-dim); width: 2em; text-align: right; }
+.kc-country { overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+.kc-bar-cell { width: 40%; }
+.kc-bar { display: block; height: 6px; background: var(--semantic-elevated); border-radius: 3px; }
+.kc-pct { text-align: right; font-family: var(--font-mono); color: var(--text); }
+.kc-toggle { align-self: center; background: none; border: 1px solid var(--border); color: var(--text-secondary); border-radius: 4px; padding: 2px 10px; cursor: pointer; font-size: inherit; }
+.kc-toggle:hover { background: var(--surface-hover); }
+.kc-threats { margin: 0; padding-left: 1.6em; }
+.kc-threats li { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+.kc-threat-name { font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; }
+.kc-threat-pct { color: var(--text-dim); }
+.kc-footer { color: var(--text-faint); font-size: 0.85em; }
+.kc-footer a { color: var(--text-dim); }

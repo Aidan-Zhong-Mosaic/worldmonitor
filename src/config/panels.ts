@@ -118,6 +118,7 @@ const FULL_PANELS: Record<string, PanelConfig> = {
   'climate-news': { name: 'Climate News', enabled: false, priority: 2 },
   'population-exposure': { name: 'Population Exposure', enabled: true, priority: 2 },
   'security-advisories': { name: 'Security Advisories', enabled: true, priority: 2 },
+  'kaspersky-cyber': { name: 'Cyber Threat Landscape', enabled: false, priority: 2 },
   'sanctions-pressure': { name: 'Sanctions Pressure', enabled: true, priority: 2 },
   'defense-patents': { name: 'R&D Signal', enabled: true, priority: 2 },
   'radiation-watch': { name: 'Radiation Watch', enabled: true, priority: 2 },
@@ -1573,7 +1574,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   dataTracking: {
     labelKey: 'header.panelCatDataTracking',
-    panelKeys: ['monitors', 'satellite-fires', 'ucdp-events', 'displacement', 'climate', 'climate-news', 'population-exposure', 'security-advisories', 'radiation-watch', 'oref-sirens', 'world-clock', 'tech-readiness', 'disease-outbreaks', 'fao-food-price-index', 'grocery-basket', 'defense-patents'],
+    panelKeys: ['monitors', 'satellite-fires', 'ucdp-events', 'displacement', 'climate', 'climate-news', 'population-exposure', 'security-advisories', 'kaspersky-cyber', 'radiation-watch', 'oref-sirens', 'world-clock', 'tech-readiness', 'disease-outbreaks', 'fao-food-price-index', 'grocery-basket', 'defense-patents'],
     variants: ['full', 'energy'],
   },
 
@@ -1590,7 +1591,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   securityPolicy: {
     labelKey: 'header.panelCatSecurityPolicy',
-    panelKeys: ['security', 'policy', 'ai-regulation'],
+    panelKeys: ['security', 'kaspersky-cyber', 'policy', 'ai-regulation'],
     variants: ['tech'],
   },
   techMarkets: {
