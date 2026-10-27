@@ -79,6 +79,9 @@ export function initDeferredDashboardFonts(): void {
 
 export function initVercelAnalytics(): void {
   if (vercelAnalyticsScheduled || typeof window === 'undefined') return;
+  // Served under a sub-path (self-hosted behind the chat gateway): Vercel's /_vercel/insights script
+  // does not exist there and would load the host's HTML page as JavaScript.
+  if (import.meta.env.BASE_URL && import.meta.env.BASE_URL !== '/') return;
   vercelAnalyticsScheduled = true;
   scheduleAfterFirstPaint(() => {
     void import('@vercel/analytics')

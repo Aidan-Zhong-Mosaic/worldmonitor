@@ -901,6 +901,10 @@ export default defineConfig(({ mode }) => {
   const activeMeta = VARIANT_META[activeVariant] || VARIANT_META.full;
 
   return {
+    // Public path the app is served under. Default '/' (unchanged). The Kubernetes build sets
+    // VITE_BASE_PATH=/worldmonitor/ so the chat's gateway can serve it at <chat host>/worldmonitor/
+    // (the gateway strips the prefix; src/services/base-path.ts re-adds it to the app's own requests).
+    base: process.env.VITE_BASE_PATH || '/',
     html: {
       cspNonce: STATIC_SCRIPT_NONCE,
     },

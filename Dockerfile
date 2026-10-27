@@ -29,6 +29,11 @@ RUN node docker/build-handlers.mjs
 ARG VITE_SELF_HOSTED_UNLOCK_PREMIUM=true
 ENV VITE_SELF_HOSTED_UNLOCK_PREMIUM=${VITE_SELF_HOSTED_UNLOCK_PREMIUM}
 
+# Serve under a sub-path (Kubernetes: --build-arg VITE_BASE_PATH=/worldmonitor/, with the gateway
+# stripping the prefix). Empty = served at the root, as on the Docker hosts (unchanged).
+ARG VITE_BASE_PATH=
+ENV VITE_BASE_PATH=${VITE_BASE_PATH}
+
 # Build the crawlable static corpus and Vite frontend (outputs to dist/)
 # Skip blog build — blog-site has its own deps not installed here
 # generate:mosaic first so the LOB CSVs, not a stale generated.ts, decide panels

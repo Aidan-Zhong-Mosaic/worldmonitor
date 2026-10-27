@@ -1,3 +1,4 @@
+import './bootstrap/base-path-install';
 import './styles/base-layer.css';
 import './bootstrap/zod-csp';
 import { SITE_VARIANT } from '@/config/variant';
@@ -10,6 +11,7 @@ import { registerLcpReporting } from '@/bootstrap/lcp-report';
 import { initVercelAnalytics } from '@/bootstrap/secondary-startup';
 import { loadVariantThemeStylesheet } from '@/bootstrap/variant-theme';
 import { App } from './App';
+import { BASE_PATH } from '@/services/base-path';
 import { installUtmInterceptor } from './utils/utm';
 import { captureContentAttributionFromUrl } from '../shared/content-attribution';
 
@@ -713,7 +715,7 @@ if (!('__TAURI_INTERNALS__' in window) && !('__TAURI__' in window) && swContaine
     } catch {}
   };
 
-  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+  navigator.serviceWorker.register(`${BASE_PATH}/sw.js`, { scope: `${BASE_PATH}/` })
     .then((registration) => {
       console.log('[PWA] Service worker registered');
 
