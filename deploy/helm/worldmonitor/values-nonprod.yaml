@@ -1,0 +1,22 @@
+# Non-prod deployment values (namespace mosaic-ai-nonprod). No secrets in this file:
+# the app's keys come from the Secret named below, created in that namespace by hand.
+# The image tags are set on the command line by deploy-service.sh (--set <key>.tag=<git sha>).
+
+app:
+  image:
+    repository: "481781217475.dkr.ecr.eu-west-1.amazonaws.com/worldmonitor"
+    tag: "latest"
+  replicaCount: 1
+
+aisRelay:
+  image:
+    repository: "481781217475.dkr.ecr.eu-west-1.amazonaws.com/worldmonitor-ais-relay"
+    tag: "latest"
+
+redisRest:
+  image:
+    repository: "481781217475.dkr.ecr.eu-west-1.amazonaws.com/worldmonitor-redis-rest"
+    tag: "latest"
+
+secrets:
+  existingSecret: worldmonitor-secrets

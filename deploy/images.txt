@@ -1,0 +1,6 @@
+# Images deploy-service.sh builds and pushes for this project, one per line:
+#   <Helm values key for the tag> | <Dockerfile> | <build context dir>
+# The ECR repository for each comes from that image's `repository:` in the values file.
+app.image.tag        | Dockerfile                       | .
+aisRelay.image.tag   | Dockerfile.relay                 | .
+redisRest.image.tag  | docker/Dockerfile.redis-rest     | docker
