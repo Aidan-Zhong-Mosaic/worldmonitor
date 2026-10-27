@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "worldmonitor.fullname" . }}-config
+  labels:
+    {{- include "worldmonitor.labels" . | nindent 4 }}
+data:
+  # worldmonitor app
+  LOCAL_API_PORT: {{ .Values.app.config.localApiPort | quote }}
+  LOCAL_API_MODE: {{ .Values.app.config.localApiMode | quote }}
+  LOCAL_API_CLOUD_FALLBACK: {{ .Values.app.config.localApiCloudFallback | quote }}
+  SELF_HOSTED_UNLOCK_PREMIUM: {{ .Values.app.config.selfHostedUnlockPremium | quote }}
+  UPSTASH_REDIS_REST_URL: "http://{{ include "worldmonitor.componentFullname" (list . "redis-rest") }}:{{ .Values.redisRest.port }}"
+  WS_RELAY_URL: "http://{{ include "worldmonitor.componentFullname" (list . "ais-relay") }}:{{ .Values.aisRelay.port }}"
+
+  # ais-relay
+  # PORT is deliberately NOT here: ais-relay and redis-rest both read a plain
+  # $PORT env var for their own listen port, so it's set per-Deployment below
+  # instead of in this shared ConfigMap (which every container mounts via
+  # envFrom) to avoid one clobbering the other's port.
+  MARKET_YAHOO_REFRESH_INTERVAL_MS: {{ .Values.aisRelay.config.marketYahooRefreshIntervalMs | quote }}
+  UPSTASH_ALLOW_INSECURE_HTTP: {{ .Values.aisRelay.config.upstashAllowInsecureHttp | quote }}

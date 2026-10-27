@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worldmonitor.componentFullname" (list . "app") }}
+  labels:
+    {{- include "worldmonitor.componentLabels" (list . "app") | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worldmonitor.componentSelectorLabels" (list . "app") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worldmonitor.componentSelectorLabels" (list . "app") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "worldmonitor.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "worldmonitor.fullname" . }}-config
+            - secretRef:
+                name: {{ include "worldmonitor.secretName" . }}
+          env:
+            # REDIS_TOKEN in the shared secret is the redis-rest shim's own
+            # bearer token, aliased here to the name the app expects.
+            - name: UPSTASH_REDIS_REST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worldmonitor.secretName" . }}
+                  key: REDIS_TOKEN
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.probes.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.probes.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
